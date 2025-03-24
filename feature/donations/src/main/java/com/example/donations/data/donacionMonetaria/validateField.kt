@@ -2,6 +2,7 @@ package com.example.donations.data.donacionMonetaria
 
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.remember
+import java.util.Locale
 import java.util.regex.Pattern
 
 data class MonetariaFormState(
@@ -67,11 +68,14 @@ fun rememberMonetariaFormValidator() = remember {
             },
             rfcError = when {
                 state.quiereRecibo == true && state.rfc.isEmpty() -> "El RFC es obligatorio"
-                state.quiereRecibo == true && !Pattern.compile("^([A-ZÑ&]{3,4}) ?(?:- ?)?(\\d{2}(?:0[1-9]|1[0-2])(?:0[1-9]|[12]\\d|3[01])) ?(?:- ?)?([A-Z\\d]{3})$").matcher(state.rfc).matches() -> "Formato de RFC inválido"
+                state.quiereRecibo == true && !Pattern.compile("^([A-ZÑ&]{3,4}) ?(?:- ?)?(\\d{2}(?:0[1-9]|1[0-2])(?:0[1-9]|[12]\\d|3[01])) ?(?:- ?)?([A-Z\\d]{3})$").matcher(
+                    state.rfc.uppercase(Locale.getDefault())
+                ).matches() -> "Formato de RFC inválido"
                 else -> null
             },
             razonError = when {
-                state.quiereRecibo == true && state.razon.isEmpty() -> "La razón social es obligatoria"
+                // Una persona física puede querer recibo, y no tener una razón social
+                //state.quiereRecibo == true && state.razon.isEmpty() -> "La razón social es obligatoria"
                 state.quiereRecibo == true && state.razon.length > 100 -> "La razón social debe tener máximo 100 caracteres"
                 else -> null
             },

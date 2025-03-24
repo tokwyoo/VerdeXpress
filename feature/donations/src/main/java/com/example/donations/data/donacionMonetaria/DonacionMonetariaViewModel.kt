@@ -14,9 +14,11 @@ import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import org.json.JSONObject
 import java.net.URL
+import java.time.LocalDateTime
 import javax.net.ssl.HttpsURLConnection
 
 class DonacionMonetariaViewModel : ViewModel() {
+    // Datos del formulario
     var nombre: String = ""
     var correo: String = ""
     var numTel: String = ""
@@ -37,6 +39,14 @@ class DonacionMonetariaViewModel : ViewModel() {
     var isPaymentSheetReady by mutableStateOf(false)
     var isLoading by mutableStateOf(false)
 
+    // Estado para mostrar el mensaje de éxito
+    var showSuccessMessage by mutableStateOf(false)
+
+    // Detalles de la transacción
+    var transactionId by mutableStateOf<String?>(null)
+    var transactionDate by mutableStateOf<String?>(null)
+
+    // Limpiar el ViewModel
     fun clear() {
         nombre = ""
         correo = ""
@@ -50,14 +60,20 @@ class DonacionMonetariaViewModel : ViewModel() {
         razon = ""
         domFiscal = ""
 
-        // Clear Stripe-related fields
+        // Limpiar campos relacionados con Stripe
         paymentIntentClientSecret = null
         customerConfig = null
         paymentSheetConfig = null
         paymentStatus = null
         isPaymentSheetReady = false
+
+        // Limpiar detalles de la transacción
+        transactionId = null
+        transactionDate = null
+        showSuccessMessage = false
     }
-    // This function would typically call your backend to create a PaymentIntent
+
+    // Función para preparar la hoja de pago
     fun preparePaymentSheet() {
         if (cantidad.isEmpty()) return
 
@@ -95,7 +111,33 @@ class DonacionMonetariaViewModel : ViewModel() {
         }
     }
 
+    // Función para manejar el resultado del pago
+    fun handlePaymentResult(result: PaymentSheetResult) {
+        when (result) {
+            is PaymentSheetResult.Completed -> {
+                // Pago completado
+                paymentStatus = result
+                transactionId = extractTransactionId(paymentIntentClientSecret) // Extraer el ID de la transacción
+                transactionDate = LocalDateTime.now().toString() // Obtener la fecha actual
+                showSuccessMessage = true // Mostrar mensaje de éxito
+            }
+            is PaymentSheetResult.Canceled -> {
+                // Pago cancelado
+                paymentStatus = result
+            }
+            is PaymentSheetResult.Failed -> {
+                // Pago fallido
+                paymentStatus = result
+            }
+        }
+    }
 
+    // Función para extraer el ID de la transacción desde el clientSecret
+    private fun extractTransactionId(clientSecret: String?): String? {
+        return clientSecret?.substringBefore("_secret")
+    }
+
+    // Función para obtener el PaymentIntent desde el backend
     private suspend fun fetchPaymentIntent(): Triple<String, String?, String?> = withContext(Dispatchers.IO) {
         try {
             // URL del endpoint
@@ -157,16 +199,4 @@ class DonacionMonetariaViewModel : ViewModel() {
             throw e // Relanzar la excepción para manejarla en el ViewModel
         }
     }
-
-    /*
-     // Simulated backend call
-    private suspend fun fetchPaymentIntent(): Triple<String, String?, String?> = withContext(
-        Dispatchers.IO) {
-        delay(2000) // Simulate network delay
-
-        // Simulated response
-        Triple("pi_1J2e3F2eZvKYlo2C5eZvKYlo", "cus_1J2e3F2eZvKYlo2C5eZvKYlo", "ek_test_1J2e3F2eZvKYlo2C5eZvKYlo")
-    }
-    */
-
 }

@@ -26,7 +26,7 @@ import com.example.donations.data.donacionMonetaria.MonetariaValidationResult
 import com.example.donations.data.donacionMonetaria.isValid
 import com.example.donations.data.donacionMonetaria.rememberMonetariaFormValidator
 import com.example.donations.ui.donacionEspecie.reu.CustomDropdown
-import com.example.donations.ui.donacionEspecie.reu.CustomOutlinedTextField
+import com.example.donations.ui.donacionMonetaria.reu.CustomOutlinedTextField
 
 @Composable
 fun FormScreen(navController: NavController, viewModel: DonacionMonetariaViewModel) {

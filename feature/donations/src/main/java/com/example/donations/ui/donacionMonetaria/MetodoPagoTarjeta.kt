@@ -4,6 +4,7 @@ import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
+import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.CheckCircle
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
@@ -22,37 +23,29 @@ import com.example.donations.data.donacionMonetaria.DonacionMonetariaViewModel
 import com.stripe.android.paymentsheet.PaymentSheet
 import com.stripe.android.paymentsheet.PaymentSheetResult
 import com.stripe.android.paymentsheet.rememberPaymentSheet
+import java.time.LocalDateTime
 
 @Composable
 fun MetodoPagoTarjetaScreen(navController: NavController, viewModel: DonacionMonetariaViewModel) {
-    // Get payment data from viewModel
+    // Obtener datos del ViewModel
     val nombre = viewModel.nombre
     val correo = viewModel.correo
-    val cantidad = viewModel.cantidad
+    val numTel = viewModel.numTel
+    val rfc = viewModel.rfc
+    val razon = viewModel.razon
+    val domFiscal = viewModel.domFiscal
     val parqueSeleccionado = viewModel.parqueSeleccionado
+    val ubicacionSeleccionado = viewModel.ubicacionSeleccionado
+    val cantidad = viewModel.cantidad
+    val transactionId = viewModel.transactionId
+    val transactionDate = viewModel.transactionDate
 
     // Stripe Payment Sheet
     val context = LocalContext.current
     val isPaymentSheetReady = viewModel.isPaymentSheetReady
     val isLoading = viewModel.isLoading
     val paymentSheet = rememberPaymentSheet { result ->
-        when (result) {
-            is PaymentSheetResult.Completed -> {
-                // Payment complete
-                viewModel.paymentStatus = result
-                // Navigate to success screen or show success message
-                //navController.navigate("")
-            }
-            is PaymentSheetResult.Canceled -> {
-                // Payment canceled
-                viewModel.paymentStatus = result
-            }
-            is PaymentSheetResult.Failed -> {
-                // Payment failed
-                viewModel.paymentStatus = result
-                // Show error message
-            }
-        }
+        viewModel.handlePaymentResult(result) // Manejar el resultado del pago
     }
 
     // Colors and styles
@@ -63,16 +56,6 @@ fun MetodoPagoTarjetaScreen(navController: NavController, viewModel: DonacionMon
     LaunchedEffect(Unit) {
         if (viewModel.paymentIntentClientSecret == null) {
             viewModel.preparePaymentSheet()
-        }
-    }
-
-    // Effect to present Payment Sheet when it's ready
-    LaunchedEffect(isPaymentSheetReady) {
-        if (isPaymentSheetReady && viewModel.paymentIntentClientSecret != null) {
-            paymentSheet.presentWithPaymentIntent(
-                paymentIntentClientSecret = viewModel.paymentIntentClientSecret!!,
-                configuration = viewModel.paymentSheetConfig
-            )
         }
     }
 
@@ -88,135 +71,111 @@ fun MetodoPagoTarjetaScreen(navController: NavController, viewModel: DonacionMon
 
         Spacer(modifier = Modifier.height(16.dp))
 
-        // Form content
-        Column(
-            modifier = Modifier
-                .fillMaxSize()
-                .padding(16.dp),
-            verticalArrangement = Arrangement.spacedBy(16.dp),
-            horizontalAlignment = Alignment.CenterHorizontally
-        ) {
-            // Title
-            Text(
-                text = "Detalles de pago",
-                fontSize = 25.sp,
-                fontFamily = FontFamily(Font(R.font.sf_pro_display_bold)),
-                modifier = Modifier.padding(bottom = 16.dp)
+        if (viewModel.showSuccessMessage) {
+            // Mostrar mensaje de éxito y detalles de la transacción
+            SuccessMessage(
+                nombre = nombre,
+                correo = correo,
+                numTel = numTel,
+                rfc = rfc,
+                razon = razon,
+                domFiscal = domFiscal,
+                parqueSeleccionado = parqueSeleccionado,
+                ubicacionSeleccionado = ubicacionSeleccionado,
+                cantidad = cantidad,
+                transactionId = transactionId,
+                transactionDate = transactionDate
             )
-
-            // Donation summary card
-            Card(
+        } else {
+            // Formulario de pago
+            Column(
                 modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(vertical = 8.dp),
-                shape = roundedShape,
-                colors = CardDefaults.cardColors(
-                    containerColor = Color(0xFFF5F5F5)
-                )
+                    .fillMaxSize()
+                    .padding(16.dp),
+                verticalArrangement = Arrangement.spacedBy(16.dp),
+                horizontalAlignment = Alignment.CenterHorizontally
             ) {
-                Column(
-                    modifier = Modifier.padding(16.dp),
-                    verticalArrangement = Arrangement.spacedBy(8.dp)
+                // Title
+                Text(
+                    text = "Detalles de pago",
+                    fontSize = 25.sp,
+                    fontFamily = FontFamily(Font(R.font.sf_pro_display_bold)),
+                    modifier = Modifier.padding(bottom = 16.dp)
+                )
+
+                // Donation summary card
+                Card(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(vertical = 8.dp),
+                    shape = roundedShape,
+                    colors = CardDefaults.cardColors(
+                        containerColor = Color(0xFFF5F5F5)
+                    )
                 ) {
-                    Text(
-                        text = "Resumen de la donación",
-                        fontSize = 18.sp,
-                        fontFamily = FontFamily(Font(R.font.sf_pro_display_bold))
-                    )
-                    Divider()
-                    Text(text = "Nombre: $nombre")
-                    Text(text = "Correo: $correo")
-                    Text(text = "Parque: $parqueSeleccionado")
-                    Text(
-                        text = "Monto: $${cantidad} MXN",
-                        fontSize = 18.sp,
-                        fontFamily = FontFamily(Font(R.font.sf_pro_display_bold))
-                    )
-                }
-            }
-
-            Spacer(modifier = Modifier.height(16.dp))
-
-            // Show loading or payment button
-            if (isLoading) {
-                CircularProgressIndicator(color = verdeBoton)
-                Spacer(modifier = Modifier.height(8.dp))
-                Text(text = "Preparando pago...")
-            } else {
-                when (val result = viewModel.paymentStatus) {
-                    is PaymentSheetResult.Completed -> {
-                        Icon(
-                            imageVector = androidx.compose.material.icons.Icons.Default.CheckCircle,
-                            contentDescription = "Pago completado",
-                            tint = verdeBoton,
-                            modifier = Modifier.size(48.dp)
-                        )
+                    Column(
+                        modifier = Modifier.padding(16.dp),
+                        verticalArrangement = Arrangement.spacedBy(8.dp)
+                    ) {
                         Text(
-                            text = "¡Pago completado!",
+                            text = "Resumen de la donación",
+                            fontSize = 18.sp,
+                            fontFamily = FontFamily(Font(R.font.sf_pro_display_bold))
+                        )
+                        Divider()
+                        Text(text = "Nombre del donante: $nombre")
+                        Text(text = "Correo electrónico: $correo")
+                        Text(text = "Número de contacto: $numTel")
+
+                        if (viewModel.quiereRecibo == true) {
+                            Text(text = "RFC: $rfc")
+                            if (razon.isNotEmpty()) {
+                                Text(text = "Razón social: $razon")
+                            }
+                            Text(text = "Domicilio fiscal: $domFiscal")
+                        }
+
+                        Text(text = "Parque: $parqueSeleccionado")
+                        Text(text = "Ubicación: $ubicacionSeleccionado")
+
+                        Text(
+                            text = "Monto: $${cantidad} MXN",
                             fontSize = 18.sp,
                             fontFamily = FontFamily(Font(R.font.sf_pro_display_bold))
                         )
                     }
-                    is PaymentSheetResult.Failed -> {
-                        Icon(
-                            imageVector = androidx.compose.material.icons.Icons.Default.CheckCircle,
-                            contentDescription = "Error en el pago",
-                            tint = Color.Red,
-                            modifier = Modifier.size(48.dp)
-                        )
-                        Text(
-                            text = "Error en el pago: ${result.error.localizedMessage}",
-                            color = Color.Red
-                        )
-                        Spacer(modifier = Modifier.height(16.dp))
-                        Button(
-                            onClick = { viewModel.preparePaymentSheet() },
-                            modifier = Modifier
-                                .fillMaxWidth()
-                                .height(50.dp),
-                            colors = ButtonDefaults.buttonColors(containerColor = verdeBoton),
-                            shape = roundedShape
-                        ) {
+                }
+
+                Spacer(modifier = Modifier.height(16.dp))
+
+                // Show loading or payment button
+                if (isLoading) {
+                    CircularProgressIndicator(color = verdeBoton)
+                    Spacer(modifier = Modifier.height(8.dp))
+                    Text(text = "Preparando pago...")
+                } else {
+                    when (val result = viewModel.paymentStatus) {
+                        is PaymentSheetResult.Completed -> {
+                            // No se muestra nada aquí porque se maneja en el estado showSuccessMessage
+                        }
+                        is PaymentSheetResult.Failed -> {
+                            // Mostrar mensaje de error
                             Text(
-                                text = "Reintentar",
-                                fontSize = 16.sp,
-                                fontFamily = FontFamily(Font(R.font.sf_pro_display_bold))
+                                text = "Error en el pago: ${result.error.message}",
+                                color = Color.Red
                             )
                         }
-                    }
-                    is PaymentSheetResult.Canceled -> {
-                        Button(
-                            onClick = {
-                                if (viewModel.paymentIntentClientSecret != null) {
-                                    paymentSheet.presentWithPaymentIntent(
-                                        paymentIntentClientSecret = viewModel.paymentIntentClientSecret!!,
-                                        configuration = viewModel.paymentSheetConfig
-                                    )
-                                } else {
-                                    viewModel.preparePaymentSheet()
-                                }
-                            },
-                            modifier = Modifier
-                                .fillMaxWidth()
-                                .height(50.dp),
-                            colors = ButtonDefaults.buttonColors(containerColor = verdeBoton),
-                            shape = roundedShape
-                        ) {
-                            Text(
-                                text = "Continuar con el pago",
-                                fontSize = 16.sp,
-                                fontFamily = FontFamily(Font(R.font.sf_pro_display_bold))
-                            )
-                        }
-                    }
-                    null -> {
-                        if (isPaymentSheetReady) {
+                        is PaymentSheetResult.Canceled -> {
                             Button(
                                 onClick = {
-                                    paymentSheet.presentWithPaymentIntent(
-                                        paymentIntentClientSecret = viewModel.paymentIntentClientSecret!!,
-                                        configuration = viewModel.paymentSheetConfig
-                                    )
+                                    if (viewModel.paymentIntentClientSecret != null) {
+                                        paymentSheet.presentWithPaymentIntent(
+                                            paymentIntentClientSecret = viewModel.paymentIntentClientSecret!!,
+                                            configuration = viewModel.paymentSheetConfig
+                                        )
+                                    } else {
+                                        viewModel.preparePaymentSheet()
+                                    }
                                 },
                                 modifier = Modifier
                                     .fillMaxWidth()
@@ -225,30 +184,297 @@ fun MetodoPagoTarjetaScreen(navController: NavController, viewModel: DonacionMon
                                 shape = roundedShape
                             ) {
                                 Text(
-                                    text = "Pagar ahora",
+                                    text = "Continuar con el pago",
                                     fontSize = 16.sp,
                                     fontFamily = FontFamily(Font(R.font.sf_pro_display_bold))
                                 )
                             }
-                        } else {
-                            Button(
-                                onClick = { viewModel.preparePaymentSheet() },
-                                modifier = Modifier
-                                    .fillMaxWidth()
-                                    .height(50.dp),
-                                colors = ButtonDefaults.buttonColors(containerColor = verdeBoton),
-                                shape = roundedShape
-                            ) {
-                                Text(
-                                    text = "Preparar pago",
-                                    fontSize = 16.sp,
-                                    fontFamily = FontFamily(Font(R.font.sf_pro_display_bold))
-                                )
+                        }
+                        null -> {
+                            if (isPaymentSheetReady) {
+                                Button(
+                                    onClick = {
+                                        if (viewModel.paymentIntentClientSecret != null) {
+                                            paymentSheet.presentWithPaymentIntent(
+                                                paymentIntentClientSecret = viewModel.paymentIntentClientSecret!!,
+                                                configuration = viewModel.paymentSheetConfig
+                                            )
+                                        }
+                                    },
+                                    modifier = Modifier
+                                        .fillMaxWidth()
+                                        .height(50.dp),
+                                    colors = ButtonDefaults.buttonColors(containerColor = verdeBoton),
+                                    shape = roundedShape
+                                ) {
+                                    Text(
+                                        text = "Pagar ahora",
+                                        fontSize = 16.sp,
+                                        fontFamily = FontFamily(Font(R.font.sf_pro_display_bold))
+                                    )
+                                }
+                            } else {
+                                Button(
+                                    onClick = { viewModel.preparePaymentSheet() },
+                                    modifier = Modifier
+                                        .fillMaxWidth()
+                                        .height(50.dp),
+                                    colors = ButtonDefaults.buttonColors(containerColor = verdeBoton),
+                                    shape = roundedShape
+                                ) {
+                                    Text(
+                                        text = "Preparar pago",
+                                        fontSize = 16.sp,
+                                        fontFamily = FontFamily(Font(R.font.sf_pro_display_bold))
+                                    )
+                                }
                             }
                         }
                     }
                 }
             }
         }
+    }
+}
+
+@Composable
+fun SuccessMessage(
+    nombre: String,
+    correo: String,
+    numTel: String,
+    rfc: String?,
+    razon: String?,
+    domFiscal: String?,
+    parqueSeleccionado: String,
+    ubicacionSeleccionado: String,
+    cantidad: String,
+    transactionId: String?,
+    transactionDate: String?
+) {
+    Column(
+        modifier = Modifier
+            .fillMaxSize()
+            .padding(24.dp),
+        verticalArrangement = Arrangement.Center,
+        horizontalAlignment = Alignment.CenterHorizontally
+    ) {
+        Icon(
+            imageVector = Icons.Default.CheckCircle,
+            contentDescription = "Success",
+            tint = Color(0xFF78B153),
+            modifier = Modifier.size(80.dp)
+        )
+
+        Spacer(modifier = Modifier.height(16.dp))
+
+        Text(
+            text = "¡Pago exitoso!",
+            fontSize = 28.sp,
+            fontFamily = FontFamily(Font(R.font.sf_pro_display_bold))
+        )
+
+        Spacer(modifier = Modifier.height(8.dp))
+
+        Text(
+            text = "Tu donación ha sido procesada correctamente",
+            fontSize = 16.sp,
+            fontFamily = FontFamily(Font(R.font.sf_pro_display_regular)),
+            color = Color.Gray
+        )
+
+        Spacer(modifier = Modifier.height(24.dp))
+
+        Card(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(vertical = 8.dp),
+            shape = RoundedCornerShape(16.dp),
+            colors = CardDefaults.cardColors(
+                containerColor = Color(0xFFF5F5F5)
+            ),
+            elevation = CardDefaults.cardElevation(
+                defaultElevation = 2.dp
+            )
+        ) {
+            Column(
+                modifier = Modifier.padding(24.dp),
+                verticalArrangement = Arrangement.spacedBy(12.dp)
+            ) {
+                Text(
+                    text = "Detalles de la transacción",
+                    fontSize = 20.sp,
+                    fontFamily = FontFamily(Font(R.font.sf_pro_display_bold))
+                )
+
+                Divider(thickness = 1.dp, color = Color.LightGray)
+
+                // Monto con estilo destacado
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.SpaceBetween
+                ) {
+                    Text(
+                        text = "Monto",
+                        fontFamily = FontFamily(Font(R.font.sf_pro_display_regular))
+                    )
+                    Text(
+                        text = "$${cantidad} MXN",
+                        fontSize = 18.sp,
+                        fontFamily = FontFamily(Font(R.font.sf_pro_display_bold)),
+                        color = Color(0xFF78B153)
+                    )
+                }
+
+                // Método de pago (tarjeta enmascarada)
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.SpaceBetween
+                ) {
+                    Text(
+                        text = "Método de pago",
+                        fontFamily = FontFamily(Font(R.font.sf_pro_display_regular))
+                    )
+                    Text(
+                        text = "•••• •••• •••• 4242", // Ejemplo de tarjeta enmascarada
+                        fontFamily = FontFamily(Font(R.font.sf_pro_display_regular))
+                    )
+                }
+
+                // Fecha formateada
+                if (!transactionDate.isNullOrEmpty()) {
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        horizontalArrangement = Arrangement.SpaceBetween
+                    ) {
+                        Text(
+                            text = "Fecha",
+                            fontFamily = FontFamily(Font(R.font.sf_pro_display_regular))
+                        )
+                        // Formatear fecha aquí
+                        Text(
+                            text = formatDate(transactionDate),
+                            fontFamily = FontFamily(Font(R.font.sf_pro_display_regular))
+                        )
+                    }
+                }
+
+                // ID de transacción
+                if (!transactionId.isNullOrEmpty()) {
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        horizontalArrangement = Arrangement.SpaceBetween
+                    ) {
+                        Text(
+                            text = "ID de transacción",
+                            fontFamily = FontFamily(Font(R.font.sf_pro_display_regular))
+                        )
+                        Text(
+                            text = transactionId,
+                            fontFamily = FontFamily(Font(R.font.sf_pro_display_regular)),
+                            fontSize = 14.sp
+                        )
+                    }
+                }
+
+                Divider(thickness = 1.dp, color = Color.LightGray)
+
+                // Detalles de la donación
+                Text(
+                    text = "Detalles de la donación",
+                    fontSize = 16.sp,
+                    fontFamily = FontFamily(Font(R.font.sf_pro_display_bold)),
+                    modifier = Modifier.padding(top = 8.dp)
+                )
+
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.SpaceBetween
+                ) {
+                    Text(
+                        text = "Parque",
+                        fontFamily = FontFamily(Font(R.font.sf_pro_display_regular))
+                    )
+                    Text(
+                        text = parqueSeleccionado,
+                        fontFamily = FontFamily(Font(R.font.sf_pro_display_regular))
+                    )
+                }
+
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.SpaceBetween
+                ) {
+                    Text(
+                        text = "Ubicación",
+                        fontFamily = FontFamily(Font(R.font.sf_pro_display_regular))
+                    )
+                    Text(
+                        text = ubicacionSeleccionado,
+                        fontFamily = FontFamily(Font(R.font.sf_pro_display_regular))
+                    )
+                }
+
+                // Detalles del donante
+                Text(
+                    text = "Información del donante",
+                    fontSize = 16.sp,
+                    fontFamily = FontFamily(Font(R.font.sf_pro_display_bold)),
+                    modifier = Modifier.padding(top = 8.dp)
+                )
+
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.SpaceBetween
+                ) {
+                    Text(
+                        text = "Nombre",
+                        fontFamily = FontFamily(Font(R.font.sf_pro_display_regular))
+                    )
+                    Text(
+                        text = nombre,
+                        fontFamily = FontFamily(Font(R.font.sf_pro_display_regular))
+                    )
+                }
+
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.SpaceBetween
+                ) {
+                    Text(
+                        text = "Correo",
+                        fontFamily = FontFamily(Font(R.font.sf_pro_display_regular))
+                    )
+                    Text(
+                        text = correo,
+                        fontFamily = FontFamily(Font(R.font.sf_pro_display_regular))
+                    )
+                }
+            }
+        }
+
+        Spacer(modifier = Modifier.height(24.dp))
+
+        Text(
+            text = "¡Gracias por tu donación!",
+            fontSize = 16.sp,
+            fontFamily = FontFamily(Font(R.font.sf_pro_display_medium)),
+            color = Color(0xFF78B153)
+        )
+    }
+}
+
+// Función para formatear la fecha
+private fun formatDate(dateString: String): String {
+    return try {
+        val dateTime = LocalDateTime.parse(dateString)
+        val day = dateTime.dayOfMonth.toString().padStart(2, '0')
+        val month = dateTime.monthValue.toString().padStart(2, '0')
+        val year = dateTime.year
+        val hour = dateTime.hour.toString().padStart(2, '0')
+        val minute = dateTime.minute.toString().padStart(2, '0')
+
+        "$day/$month/$year $hour:$minute hrs"
+    } catch (e: Exception) {
+        dateString // Devuelve la cadena original si hay un error de formato
     }
 }
