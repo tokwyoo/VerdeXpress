@@ -47,7 +47,7 @@ fun MetodoPagoTarjetaScreen(navController: NavController, viewModel: DonacionMon
     val isPaymentSheetReady = viewModel.isPaymentSheetReady
     val isLoading = viewModel.isLoading
     val paymentSheet = rememberPaymentSheet { result ->
-        viewModel.handlePaymentResult(result) // Manejar el resultado del pago
+        viewModel.handlePaymentResult(result)
     }
 
     // Colors and styles

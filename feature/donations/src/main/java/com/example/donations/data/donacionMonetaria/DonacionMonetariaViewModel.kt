@@ -123,6 +123,7 @@ class DonacionMonetariaViewModel : ViewModel() {
     }
 
     // Función para manejar el resultado del pago
+    // Función para manejar el resultado del pago
     fun handlePaymentResult(result: PaymentSheetResult) {
         when (result) {
             is PaymentSheetResult.Completed -> {
@@ -137,6 +138,25 @@ class DonacionMonetariaViewModel : ViewModel() {
 
                 // Obtener los detalles del método de pago desde el backend
                 fetchPaymentMethodDetails(transactionId)
+
+                // Guardar en Firestore solo cuando el pago es exitoso
+                saveDonationToFirestore(
+                    nombre = nombre,
+                    correo = correo,
+                    numTel = numTel,
+                    cantidad = cantidad,
+                    metodoPago = metodoPago,
+                    parqueSeleccionado = parqueSeleccionado,
+                    UbicacionSeleccionado = ubicacionSeleccionado,
+                    quiereRecibo = quiereRecibo ?: false,
+                    rfc = rfc,
+                    razon = razon,
+                    domFiscal = domFiscal,
+                    cardBrand = cardBrand ?: "Tarjeta",
+                    lastCardDigits = lastCardDigits ?: "****",
+                    transactionId = transactionId ?: "N/A",
+                    transactionDate = transactionDate ?: now.toString()
+                )
 
                 showSuccessMessage = true
             }
