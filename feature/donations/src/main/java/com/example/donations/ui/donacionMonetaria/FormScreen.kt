@@ -60,7 +60,7 @@ fun FormScreen(navController: NavController, viewModel: DonacionMonetariaViewMod
     var validationResult by remember { mutableStateOf<MonetariaValidationResult?>(null) }
 
     // Listas de opciones
-    val metodosPago = listOf("Tarjeta de crédito/débito", "PayPal")
+    val metodosPago = listOf("Tarjeta de crédito/débito")
     val parques = remember { mutableStateListOf<String>() }
     val ubicaciones = remember { mutableStateListOf<String>() }
 

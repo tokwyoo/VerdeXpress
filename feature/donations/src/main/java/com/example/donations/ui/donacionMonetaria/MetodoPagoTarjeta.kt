@@ -86,7 +86,8 @@ fun MetodoPagoTarjetaScreen(navController: NavController, viewModel: DonacionMon
                 ubicacionSeleccionado = ubicacionSeleccionado,
                 cantidad = cantidad,
                 transactionId = transactionId,
-                transactionDate = transactionDate
+                transactionDate = transactionDate,
+                lastCardDigits = viewModel.lastCardDigits,
             )
         } else {
             // Formulario de pago
@@ -252,8 +253,9 @@ fun SuccessMessage(
     cantidad: String,
     transactionId: String?,
     transactionDate: String?,
-    // Nuevo parámetro para recibir los últimos dígitos de la tarjeta
-    lastCardDigits: String? = "4242" // Valor por defecto para compatibilidad
+    lastCardDigits: String?,
+    cardBrand: String? = null,
+    formattedDate: String? = null
 ) {
     Column(
         modifier = Modifier
@@ -323,19 +325,17 @@ fun SuccessMessage(
                     )
                 )
 
-                // Método de pago (tarjeta enmascarada)
+                // Método de pago (tarjeta enmascarada con marca)
                 InfoRow(
                     label = "Método de pago",
-                    value = "•••• •••• •••• ${lastCardDigits ?: "****"}"
+                    value = buildCardDisplayText(cardBrand, lastCardDigits)
                 )
 
                 // Fecha formateada
-                if (!transactionDate.isNullOrEmpty()) {
-                    InfoRow(
-                        label = "Fecha",
-                        value = formatDate(transactionDate)
-                    )
-                }
+                InfoRow(
+                    label = "Fecha",
+                    value = formattedDate ?: formatDate(transactionDate ?: "")
+                )
 
                 // ID de transacción
                 if (!transactionId.isNullOrEmpty()) {
@@ -383,6 +383,38 @@ fun SuccessMessage(
                     label = "Correo",
                     value = correo
                 )
+
+                InfoRow(
+                    label = "Teléfono",
+                    value = numTel
+                )
+
+                // Información fiscal si existe
+                if (quiereRecibo(rfc, domFiscal)) {
+                    Text(
+                        text = "Información fiscal",
+                        fontSize = 16.sp,
+                        fontFamily = FontFamily(Font(R.font.sf_pro_display_bold)),
+                        modifier = Modifier.padding(top = 8.dp)
+                    )
+
+                    InfoRow(
+                        label = "RFC",
+                        value = rfc ?: ""
+                    )
+
+                    if (!razon.isNullOrEmpty()) {
+                        InfoRow(
+                            label = "Razón social",
+                            value = razon
+                        )
+                    }
+
+                    InfoRow(
+                        label = "Domicilio fiscal",
+                        value = domFiscal ?: ""
+                    )
+                }
             }
         }
 
@@ -394,6 +426,31 @@ fun SuccessMessage(
             fontFamily = FontFamily(Font(R.font.sf_pro_display_medium)),
             color = Color(0xFF78B153)
         )
+    }
+}
+
+// Función para determinar si se quiere recibo fiscal
+private fun quiereRecibo(rfc: String?, domFiscal: String?): Boolean {
+    return !rfc.isNullOrEmpty() && !domFiscal.isNullOrEmpty()
+}
+
+// Función para construir el texto de la tarjeta con formato adecuado
+private fun buildCardDisplayText(cardBrand: String?, lastCardDigits: String?): String {
+    val brand = when (cardBrand?.lowercase()) {
+        "visa" -> "Visa"
+        "mastercard" -> "Mastercard"
+        "amex" -> "Amex"
+        "discover" -> "Discover"
+        "jcb" -> "JCB"
+        "diners" -> "Diners"
+        "unionpay" -> "UnionPay"
+        else -> "Tarjeta"
+    }
+
+    return if (lastCardDigits.isNullOrEmpty()) {
+        "$brand •••• •••• •••• ****"
+    } else {
+        "$brand •••• •••• •••• $lastCardDigits"
     }
 }
 
