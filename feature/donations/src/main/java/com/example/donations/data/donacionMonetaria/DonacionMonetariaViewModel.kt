@@ -119,6 +119,7 @@ class DonacionMonetariaViewModel : ViewModel() {
                 paymentStatus = result
                 transactionId = extractTransactionId(paymentIntentClientSecret) // Extraer el ID de la transacción
                 transactionDate = LocalDateTime.now().toString() // Obtener la fecha actual
+                extractPaymentMethodDetails()
                 showSuccessMessage = true // Mostrar mensaje de éxito
             }
             is PaymentSheetResult.Canceled -> {
@@ -197,6 +198,26 @@ class DonacionMonetariaViewModel : ViewModel() {
             println("Error en fetchPaymentIntent: ${e.message}")
             e.printStackTrace() // Esto te dará más detalles en el logcat sobre la excepción
             throw e // Relanzar la excepción para manejarla en el ViewModel
+        }
+    }
+
+    private fun extractPaymentMethodDetails() {
+        viewModelScope.launch {
+            try {
+                // Esta es una implementación simulada
+                // En una implementación real, harías una llamada al backend para obtener los detalles del pago
+                // O usarías la API de Stripe para obtener esta información
+
+                // Simulando una obtención de los últimos 4 dígitos
+                delay(500) // Simular tiempo de respuesta
+                var lastCardDigits = "4242" // Valor por defecto para pruebas
+
+                // En una implementación real, obtendrías esto de la respuesta del API:
+                // lastCardDigits = responseData.getString("last4")
+            } catch (e: Exception) {
+                println("Error al obtener detalles del método de pago: ${e.message}")
+                var lastCardDigits = null
+            }
         }
     }
 }

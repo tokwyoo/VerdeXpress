@@ -12,8 +12,10 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.Font
 import androidx.compose.ui.text.font.FontFamily
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
@@ -249,7 +251,9 @@ fun SuccessMessage(
     ubicacionSeleccionado: String,
     cantidad: String,
     transactionId: String?,
-    transactionDate: String?
+    transactionDate: String?,
+    // Nuevo parámetro para recibir los últimos dígitos de la tarjeta
+    lastCardDigits: String? = "4242" // Valor por defecto para compatibilidad
 ) {
     Column(
         modifier = Modifier
@@ -309,71 +313,37 @@ fun SuccessMessage(
                 Divider(thickness = 1.dp, color = Color.LightGray)
 
                 // Monto con estilo destacado
-                Row(
-                    modifier = Modifier.fillMaxWidth(),
-                    horizontalArrangement = Arrangement.SpaceBetween
-                ) {
-                    Text(
-                        text = "Monto",
-                        fontFamily = FontFamily(Font(R.font.sf_pro_display_regular))
-                    )
-                    Text(
-                        text = "$${cantidad} MXN",
+                InfoRow(
+                    label = "Monto",
+                    value = "$${cantidad} MXN",
+                    valueStyle = TextStyle(
                         fontSize = 18.sp,
                         fontFamily = FontFamily(Font(R.font.sf_pro_display_bold)),
                         color = Color(0xFF78B153)
                     )
-                }
+                )
 
                 // Método de pago (tarjeta enmascarada)
-                Row(
-                    modifier = Modifier.fillMaxWidth(),
-                    horizontalArrangement = Arrangement.SpaceBetween
-                ) {
-                    Text(
-                        text = "Método de pago",
-                        fontFamily = FontFamily(Font(R.font.sf_pro_display_regular))
-                    )
-                    Text(
-                        text = "•••• •••• •••• 4242", // Ejemplo de tarjeta enmascarada
-                        fontFamily = FontFamily(Font(R.font.sf_pro_display_regular))
-                    )
-                }
+                InfoRow(
+                    label = "Método de pago",
+                    value = "•••• •••• •••• ${lastCardDigits ?: "****"}"
+                )
 
                 // Fecha formateada
                 if (!transactionDate.isNullOrEmpty()) {
-                    Row(
-                        modifier = Modifier.fillMaxWidth(),
-                        horizontalArrangement = Arrangement.SpaceBetween
-                    ) {
-                        Text(
-                            text = "Fecha",
-                            fontFamily = FontFamily(Font(R.font.sf_pro_display_regular))
-                        )
-                        // Formatear fecha aquí
-                        Text(
-                            text = formatDate(transactionDate),
-                            fontFamily = FontFamily(Font(R.font.sf_pro_display_regular))
-                        )
-                    }
+                    InfoRow(
+                        label = "Fecha",
+                        value = formatDate(transactionDate)
+                    )
                 }
 
                 // ID de transacción
                 if (!transactionId.isNullOrEmpty()) {
-                    Row(
-                        modifier = Modifier.fillMaxWidth(),
-                        horizontalArrangement = Arrangement.SpaceBetween
-                    ) {
-                        Text(
-                            text = "ID de transacción",
-                            fontFamily = FontFamily(Font(R.font.sf_pro_display_regular))
-                        )
-                        Text(
-                            text = transactionId,
-                            fontFamily = FontFamily(Font(R.font.sf_pro_display_regular)),
-                            fontSize = 14.sp
-                        )
-                    }
+                    InfoRow(
+                        label = "ID de transacción",
+                        value = transactionId,
+                        valueStyle = TextStyle(fontSize = 14.sp)
+                    )
                 }
 
                 Divider(thickness = 1.dp, color = Color.LightGray)
@@ -386,33 +356,15 @@ fun SuccessMessage(
                     modifier = Modifier.padding(top = 8.dp)
                 )
 
-                Row(
-                    modifier = Modifier.fillMaxWidth(),
-                    horizontalArrangement = Arrangement.SpaceBetween
-                ) {
-                    Text(
-                        text = "Parque",
-                        fontFamily = FontFamily(Font(R.font.sf_pro_display_regular))
-                    )
-                    Text(
-                        text = parqueSeleccionado,
-                        fontFamily = FontFamily(Font(R.font.sf_pro_display_regular))
-                    )
-                }
+                InfoRow(
+                    label = "Parque",
+                    value = parqueSeleccionado
+                )
 
-                Row(
-                    modifier = Modifier.fillMaxWidth(),
-                    horizontalArrangement = Arrangement.SpaceBetween
-                ) {
-                    Text(
-                        text = "Ubicación",
-                        fontFamily = FontFamily(Font(R.font.sf_pro_display_regular))
-                    )
-                    Text(
-                        text = ubicacionSeleccionado,
-                        fontFamily = FontFamily(Font(R.font.sf_pro_display_regular))
-                    )
-                }
+                InfoRow(
+                    label = "Ubicación",
+                    value = ubicacionSeleccionado
+                )
 
                 // Detalles del donante
                 Text(
@@ -422,33 +374,15 @@ fun SuccessMessage(
                     modifier = Modifier.padding(top = 8.dp)
                 )
 
-                Row(
-                    modifier = Modifier.fillMaxWidth(),
-                    horizontalArrangement = Arrangement.SpaceBetween
-                ) {
-                    Text(
-                        text = "Nombre",
-                        fontFamily = FontFamily(Font(R.font.sf_pro_display_regular))
-                    )
-                    Text(
-                        text = nombre,
-                        fontFamily = FontFamily(Font(R.font.sf_pro_display_regular))
-                    )
-                }
+                InfoRow(
+                    label = "Nombre",
+                    value = nombre
+                )
 
-                Row(
-                    modifier = Modifier.fillMaxWidth(),
-                    horizontalArrangement = Arrangement.SpaceBetween
-                ) {
-                    Text(
-                        text = "Correo",
-                        fontFamily = FontFamily(Font(R.font.sf_pro_display_regular))
-                    )
-                    Text(
-                        text = correo,
-                        fontFamily = FontFamily(Font(R.font.sf_pro_display_regular))
-                    )
-                }
+                InfoRow(
+                    label = "Correo",
+                    value = correo
+                )
             }
         }
 
@@ -459,6 +393,41 @@ fun SuccessMessage(
             fontSize = 16.sp,
             fontFamily = FontFamily(Font(R.font.sf_pro_display_medium)),
             color = Color(0xFF78B153)
+        )
+    }
+}
+
+// Componente reutilizable para filas de información con espaciado mejorado
+@Composable
+private fun InfoRow(
+    label: String,
+    value: String,
+    labelStyle: TextStyle = TextStyle(
+        fontFamily = FontFamily(Font(R.font.sf_pro_display_regular))
+    ),
+    valueStyle: TextStyle = TextStyle(
+        fontFamily = FontFamily(Font(R.font.sf_pro_display_regular))
+    )
+) {
+    Row(
+        modifier = Modifier.fillMaxWidth(),
+        horizontalArrangement = Arrangement.SpaceBetween,
+        verticalAlignment = Alignment.CenterVertically
+    ) {
+        Text(
+            text = label,
+            style = labelStyle,
+            modifier = Modifier.weight(1f)
+        )
+
+        // Espacio fijo para garantizar separación mínima
+        Spacer(modifier = Modifier.width(16.dp))
+
+        Text(
+            text = value,
+            style = valueStyle,
+            modifier = Modifier.weight(1.5f),
+            textAlign = TextAlign.End
         )
     }
 }
