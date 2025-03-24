@@ -162,12 +162,16 @@ class DonacionMonetariaViewModel : ViewModel() {
 
     // Función para obtener detalles del método de pago (tarjeta)
     private fun fetchPaymentMethodDetails(paymentIntentId: String?) {
-        if (paymentIntentId == null) return
+        if (paymentIntentId == null) {
+            println("Error: paymentIntentId es null")
+            return
+        }
+
+        println("Fetching payment method details for paymentIntentId: $paymentIntentId")
 
         viewModelScope.launch {
             try {
-                // Hacemos una llamada al backend para obtener los detalles del método de pago
-                // Este endpoint deberá ser implementado en tu backend
+                // Llamada al endpoint
                 val url = URL("https://yeddyrljnqczjxcqirjh.supabase.co/functions/v1/get-payment-method-details")
                 val connection = url.openConnection() as HttpsURLConnection
                 connection.requestMethod = "POST"
@@ -176,12 +180,11 @@ class DonacionMonetariaViewModel : ViewModel() {
                 connection.setRequestProperty("x-client-info", "Android App")
                 connection.doOutput = true
 
-                // Cuerpo de la solicitud con el ID del PaymentIntent
                 val requestBody = """
-                {
-                    "paymentIntentId": "$paymentIntentId"
-                }
-                """.trimIndent()
+            {
+                "paymentIntentId": "$paymentIntentId"
+            }
+            """.trimIndent()
 
                 connection.outputStream.use { os ->
                     os.write(requestBody.toByteArray(Charsets.UTF_8))
@@ -190,32 +193,28 @@ class DonacionMonetariaViewModel : ViewModel() {
                 val responseCode = connection.responseCode
                 if (responseCode in 200..299) {
                     val response = connection.inputStream.bufferedReader().use { it.readText() }
-                    val jsonObject = JSONObject(response)
+                    println("Response from get-payment-method-details: $response")
 
-                    // Extraer los detalles de la tarjeta
+                    val jsonObject = JSONObject(response)
                     lastCardDigits = jsonObject.optString("last4", null)
                     cardBrand = jsonObject.optString("brand", null)
                     paymentMethodId = jsonObject.optString("paymentMethodId", null)
 
                     println("Detalles de la tarjeta obtenidos: Últimos 4 dígitos: $lastCardDigits, Marca: $cardBrand")
                 } else {
-                    // Si hay un error, intentamos un enfoque alternativo
-                    println("Error al obtener detalles del método de pago. Usando método alternativo...")
+                    println("Error en la respuesta: Código $responseCode")
                     useAlternativeApproach(paymentIntentId)
                 }
             } catch (e: Exception) {
                 println("Error al obtener detalles del método de pago: ${e.message}")
-                // Intentar el enfoque alternativo si falla la primera aproximación
                 useAlternativeApproach(paymentIntentId)
             }
         }
     }
 
-    // Enfoque alternativo para obtener los detalles de la tarjeta
     private fun useAlternativeApproach(paymentIntentId: String) {
-        viewModelScope.launch {
+        viewModelScope.launch(Dispatchers.IO) {
             try {
-                // Intentar obtener los detalles directamente del PaymentIntent
                 val url = URL("https://yeddyrljnqczjxcqirjh.supabase.co/functions/v1/get-payment-intent")
                 val connection = url.openConnection() as HttpsURLConnection
                 connection.requestMethod = "POST"
@@ -225,10 +224,10 @@ class DonacionMonetariaViewModel : ViewModel() {
                 connection.doOutput = true
 
                 val requestBody = """
-                {
-                    "paymentIntentId": "$paymentIntentId"
-                }
-                """.trimIndent()
+            {
+                "paymentIntentId": "$paymentIntentId"
+            }
+            """.trimIndent()
 
                 connection.outputStream.use { os ->
                     os.write(requestBody.toByteArray(Charsets.UTF_8))
@@ -237,33 +236,55 @@ class DonacionMonetariaViewModel : ViewModel() {
                 val responseCode = connection.responseCode
                 if (responseCode in 200..299) {
                     val response = connection.inputStream.bufferedReader().use { it.readText() }
-                    val jsonObject = JSONObject(response)
+                    println("Response from get-payment-intent: $response")
 
-                    // Extraer el payment_method.card.last4 y payment_method.card.brand
-                    if (jsonObject.has("paymentMethod") && !jsonObject.isNull("paymentMethod")) {
-                        val paymentMethodObj = jsonObject.getJSONObject("paymentMethod")
-                        if (paymentMethodObj.has("card") && !paymentMethodObj.isNull("card")) {
-                            val cardObj = paymentMethodObj.getJSONObject("card")
-                            lastCardDigits = cardObj.optString("last4", null)
-                            cardBrand = cardObj.optString("brand", null)
-                            println("Detalles de la tarjeta obtenidos (alternativo): Últimos 4 dígitos: $lastCardDigits, Marca: $cardBrand")
+                    val jsonObject = JSONObject(response)
+                    if (jsonObject.has("paymentIntent") && !jsonObject.isNull("paymentIntent")) {
+                        val paymentIntentObj = jsonObject.getJSONObject("paymentIntent")
+                        if (paymentIntentObj.has("paymentMethod") && !paymentIntentObj.isNull("paymentMethod")) {
+                            val paymentMethodObj = paymentIntentObj.getJSONObject("paymentMethod")
+                            if (paymentMethodObj.has("card") && !paymentMethodObj.isNull("card")) {
+                                val cardObj = paymentMethodObj.getJSONObject("card")
+                                // Verifica si el objeto "card" tiene los campos "last4" y "brand"
+                                lastCardDigits = if (cardObj.has("last4") && !cardObj.isNull("last4")) {
+                                    cardObj.optString("last4", null)
+                                } else {
+                                    "****" // Valor predeterminado si no hay "last4"
+                                }
+                                cardBrand = if (cardObj.has("brand") && !cardObj.isNull("brand")) {
+                                    cardObj.optString("brand", null)
+                                } else {
+                                    "Tarjeta" // Valor predeterminado si no hay "brand"
+                                }
+                                println("Detalles de la tarjeta obtenidos (alternativo): Últimos 4 dígitos: $lastCardDigits, Marca: $cardBrand")
+                            } else {
+                                println("El método de pago no tiene detalles de tarjeta")
+                                lastCardDigits = "****" // Valor predeterminado
+                                cardBrand = "Tarjeta"  // Valor predeterminado
+                            }
+                        } else {
+                            println("El PaymentIntent no tiene un método de pago asociado")
+                            lastCardDigits = "****" // Valor predeterminado
+                            cardBrand = "Tarjeta"  // Valor predeterminado
                         }
+                    } else {
+                        println("La respuesta no contiene un PaymentIntent válido")
+                        lastCardDigits = "****" // Valor predeterminado
+                        cardBrand = "Tarjeta"  // Valor predeterminado
                     }
                 } else {
-                    println("Error en el método alternativo. Código: $responseCode")
-                    // Si todo falla, usamos valores predeterminados o valores de depuración
-                    lastCardDigits = "1234" // Esto debería reemplazarse con datos reales en producción
-                    cardBrand = "visa"     // Esto debería reemplazarse con datos reales en producción
+                    val errorResponse = connection.errorStream.bufferedReader().use { it.readText() }
+                    println("Error en el método alternativo. Código: $responseCode, Respuesta: $errorResponse")
+                    lastCardDigits = "****" // Valor predeterminado
+                    cardBrand = "Tarjeta"  // Valor predeterminado
                 }
             } catch (e: Exception) {
                 println("Error en el método alternativo: ${e.message}")
-                // Si todo falla, usamos valores predeterminados o valores de depuración
-                lastCardDigits = "1234" // Esto debería reemplazarse con datos reales en producción
-                cardBrand = "visa"     // Esto debería reemplazarse con datos reales en producción
+                lastCardDigits = "****" // Valor predeterminado
+                cardBrand = "Tarjeta"  // Valor predeterminado
             }
         }
     }
-
     // Función para obtener el PaymentIntent desde el backend
     private suspend fun fetchPaymentIntent(): Triple<String, String?, String?> = withContext(Dispatchers.IO) {
         try {

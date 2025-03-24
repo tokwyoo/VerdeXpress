@@ -22,7 +22,8 @@ import androidx.navigation.NavController
 import com.example.design.R
 import com.example.design.SecondaryAppBar
 import com.example.donations.data.donacionMonetaria.DonacionMonetariaViewModel
-import com.stripe.android.paymentsheet.PaymentSheet
+import com.example.donations.ui.donacionMonetaria.reu.verdeBoton
+import com.example.donations.ui.donacionMonetaria.reu.roundedShape
 import com.stripe.android.paymentsheet.PaymentSheetResult
 import com.stripe.android.paymentsheet.rememberPaymentSheet
 import java.time.LocalDateTime
@@ -43,7 +44,6 @@ fun MetodoPagoTarjetaScreen(navController: NavController, viewModel: DonacionMon
     val transactionDate = viewModel.transactionDate
 
     // Stripe Payment Sheet
-    val context = LocalContext.current
     val isPaymentSheetReady = viewModel.isPaymentSheetReady
     val isLoading = viewModel.isLoading
     val paymentSheet = rememberPaymentSheet { result ->
@@ -58,6 +58,23 @@ fun MetodoPagoTarjetaScreen(navController: NavController, viewModel: DonacionMon
     LaunchedEffect(Unit) {
         if (viewModel.paymentIntentClientSecret == null) {
             viewModel.preparePaymentSheet()
+        }
+    }
+
+    // DisposableEffect para preservar el estado del formulario durante la navegación
+    DisposableEffect(key1 = Unit) {
+        onDispose {
+            // Esto se ejecutará cuando se navegue fuera de MetodoPagoTarjeta
+            val currentRoute = navController.currentBackStackEntry?.destination?.route
+
+            // Comprueba si estamos navegando a una pantalla de método de pago
+            val navigatingToPaymentScreen = currentRoute?.contains("MonetariaFormScreen") == true
+
+            // Limpia el formulario si NO estamos navegando a pantallas de pago
+            if (!navigatingToPaymentScreen) {
+                viewModel.clear() // La próxima vez que se inicie el formulario estará vacío :)
+            }
+            // Cuando navegamos a pantallas de pago, mantiene los datos
         }
     }
 
@@ -88,6 +105,7 @@ fun MetodoPagoTarjetaScreen(navController: NavController, viewModel: DonacionMon
                 transactionId = transactionId,
                 transactionDate = transactionDate,
                 lastCardDigits = viewModel.lastCardDigits,
+                navController = navController
             )
         } else {
             // Formulario de pago
@@ -149,7 +167,7 @@ fun MetodoPagoTarjetaScreen(navController: NavController, viewModel: DonacionMon
                     }
                 }
 
-                Spacer(modifier = Modifier.height(16.dp))
+                Spacer(modifier = Modifier.height(10.dp))
 
                 // Show loading or payment button
                 if (isLoading) {
@@ -255,7 +273,7 @@ fun SuccessMessage(
     transactionDate: String?,
     lastCardDigits: String?,
     cardBrand: String? = null,
-    formattedDate: String? = null
+    formattedDate: String? = null, navController: NavController
 ) {
     Column(
         modifier = Modifier
@@ -426,6 +444,25 @@ fun SuccessMessage(
             fontFamily = FontFamily(Font(R.font.sf_pro_display_medium)),
             color = Color(0xFF78B153)
         )
+
+        Spacer(modifier = Modifier.height(24.dp))
+
+        Button(
+            onClick = {
+                navController.popBackStack("Donaciones", inclusive = false)
+                navController.navigate("Donaciones") },
+            modifier = Modifier
+                .fillMaxWidth()
+                .height(50.dp),
+            colors = ButtonDefaults.buttonColors(containerColor = verdeBoton),
+            shape = roundedShape
+        ) {
+            Text(
+                text = "Volver a Donaciones",
+                fontSize = 16.sp,
+                fontFamily = FontFamily(Font(R.font.sf_pro_display_bold))
+            )
+        }
     }
 }
 
