@@ -26,7 +26,6 @@ import com.example.parks.ui.ParksScreen
 import com.example.donations.ui.inicio.DonationsScreen
 import com.example.notifications.NotificationsScreen
 import com.example.parks.ui.MapScreen
-import com.example.profile.ProfileScreen
 import com.example.parks.ui.RegisterParkScreen
 import com.example.parks.ui.RegisterParkSuccessScreen
 import com.example.parks.ui.SharedViewModel
@@ -39,6 +38,13 @@ import com.example.donations.ui.donacionEspecie.FormScreen as EspecieFormScreen
 import com.example.donations.ui.donacionMonetaria.FormScreen as MonetariaFormScreen
 import com.example.donations.ui.donacionMonetaria.MetodoPagoTarjetaScreen
 import com.example.donations.ui.donacionMonetaria.MetodoPagoPaypalScreen
+import com.example.profile.ui.datosCuenta.AccountDataScreen
+import com.example.profile.ui.datosPersonales.PersonalDataScreen
+import com.example.profile.ui.eliminarCuenta.DeleteAccountScreen
+import com.example.profile.ui.datosPersonales.EditInfo.EditNameScreen
+import com.example.profile.ui.datosPersonales.EditInfo.EditPhoneScreen
+import com.example.profile.ui.datosPersonales.EditInfo.EditEmailScreen
+import com.example.profile.ui.inicio.ProfileScreen
 
 @Composable
 fun AppNavHost(navController: NavHostController, modifier: Modifier = Modifier) {
@@ -323,7 +329,13 @@ fun AppNavHost(navController: NavHostController, modifier: Modifier = Modifier) 
         // ----------------------------------------------------------------
 
         // RUTAS DEL MÓDULO "PROFILE"
-
+        composable("datosPersonales") { PersonalDataScreen(navController) }
+        composable("datosCuenta") { AccountDataScreen(navController) }
+        composable("eliminarCuenta") { DeleteAccountScreen(navController) }
+        // rutas de edición de datos personales
+        composable("editName") { EditNameScreen(navController) }
+        composable("editPhone") { EditPhoneScreen(navController) }
+        composable("editEmail") { EditEmailScreen(navController) }
         // ...
 
         // ----------------------------------------------------------------

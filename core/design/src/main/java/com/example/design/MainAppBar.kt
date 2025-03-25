@@ -11,6 +11,7 @@ import androidx.compose.ui.unit.*
 import com.example.design.R
 
 val SFProDisplayBold = FontFamily(Font(R.font.sf_pro_display_bold))
+val SFProDisplayMedium = FontFamily(Font(R.font.sf_pro_display_medium))
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
