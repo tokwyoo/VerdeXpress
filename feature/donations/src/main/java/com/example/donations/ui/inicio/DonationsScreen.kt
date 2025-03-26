@@ -18,6 +18,11 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 //noinspection UsingMaterialAndMaterial3Libraries
 import androidx.compose.material.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.saveable.rememberSaveable
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.shadow
@@ -30,20 +35,22 @@ import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.navigation.NavController
 import com.example.design.MainAppBar
 import com.example.donations.R
 
 @Composable
 fun RoundedBoxModifier(
-    parkName: String,
-    donationDetails: String,
-    date: String,
-    showDetails: String
+    parkName: String, donationDetails: String, date: String, showDetails: String
 ) {
     Column(
         modifier = Modifier
-            .shadow(elevation = 4.dp, spotColor = Color(0x40000000), ambientColor = Color(0x40000000))
-            .border(width = 1.dp, color = Color(0xFF78B153), shape = RoundedCornerShape(size = 5.dp))
+            .shadow(
+                elevation = 4.dp, spotColor = Color(0x40000000), ambientColor = Color(0x40000000)
+            )
+            .border(
+                width = 1.dp, color = Color(0xFF78B153), shape = RoundedCornerShape(size = 5.dp)
+            )
             .padding(1.dp)
             .width(354.dp)
             .height(74.dp)
@@ -51,29 +58,22 @@ fun RoundedBoxModifier(
             .padding(horizontal = 16.dp, vertical = 12.dp) // Ajustamos el padding aquí
     ) {
         Text(
-            text = "Parque \"$parkName\"",
-            style = TextStyle(
-                fontSize = 14.sp,
-                fontWeight = FontWeight.Bold
+            text = "Parque \"$parkName\"", style = TextStyle(
+                fontSize = 14.sp, fontWeight = FontWeight.Bold
             )
         )
         Text(
-            text = donationDetails,
-            style = TextStyle(fontSize = 12.sp)
+            text = donationDetails, style = TextStyle(fontSize = 12.sp)
         )
         Row(
-            modifier = Modifier.fillMaxWidth(),
-            horizontalArrangement = Arrangement.SpaceBetween
+            modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween
         ) {
             Text(
-                text = date,
-                style = TextStyle(fontSize = 12.sp)
+                text = date, style = TextStyle(fontSize = 12.sp)
             )
             Text(
-                text = showDetails,
-                style = TextStyle(
-                    fontSize = 12.sp,
-                    color = Color(0xFF000000)
+                text = showDetails, style = TextStyle(
+                    fontSize = 12.sp, color = Color(0xFF000000)
                 )
             )
         }
@@ -81,18 +81,41 @@ fun RoundedBoxModifier(
 }
 
 @Composable
-fun DonationHistoryScreen() {
+fun DonationsScreen(navController: NavController, showDialog: Boolean = false) {
+    // Estado para controlar la visibilidad del diálogo
+    var isDialogVisible by rememberSaveable { mutableStateOf(showDialog) }
+
+    // Observa si se debe mostrar el diálogo desde el savedStateHandle
+    LaunchedEffect(navController) {
+        navController.currentBackStackEntry?.savedStateHandle?.getLiveData<Boolean>("showDonationDialog")
+            ?.observeForever { shouldShow ->
+                isDialogVisible = shouldShow == true
+            }
+    }
+
+    // Mostrar el Dialog cuando `isDialogVisible` sea `true`
+    if (isDialogVisible) {
+        DonationTypeDialog(
+            onDismiss = {
+                isDialogVisible = false
+                // Guardar en savedStateHandle para persistencia
+                navController.currentBackStackEntry?.savedStateHandle?.set(
+                    "showDonationDialog", false
+                )
+            }, navController = navController
+        )
+    }
+
+    // Contenido de la pantalla
     Column(
-        modifier = Modifier.fillMaxSize(),
-        verticalArrangement = Arrangement.SpaceBetween
+        modifier = Modifier.fillMaxSize(), verticalArrangement = Arrangement.SpaceBetween
     ) {
         Column {
             MainAppBar()
             Column(modifier = Modifier.padding(16.dp)) {
                 Row(verticalAlignment = Alignment.CenterVertically) {
                     Text(
-                        text = "Historial de donaciones",
-                        style = TextStyle(
+                        text = "Historial de donaciones", style = TextStyle(
                             fontSize = 25.sp,
                             lineHeight = 20.sp,
                             fontFamily = FontFamily(Font(com.example.design.R.font.sf_pro_display_bold)),
@@ -111,8 +134,7 @@ fun DonationHistoryScreen() {
                 }
                 Spacer(modifier = Modifier.height(14.dp))
                 Text(
-                    text = "Últimas donaciones hechas",
-                    style = TextStyle(
+                    text = "Últimas donaciones hechas", style = TextStyle(
                         fontSize = 14.sp,
                         lineHeight = 20.sp,
                         fontFamily = FontFamily(Font(com.example.design.R.font.sf_pro_display_medium)),
@@ -157,17 +179,6 @@ fun DonationHistoryScreen() {
                     showDetails = "Ver detalles"
                 )
             }
-        }
-        Row(
-            modifier = Modifier.padding(16.dp).fillMaxWidth(),
-            horizontalArrangement = Arrangement.End
-        ) {
-            Image(
-                painter = painterResource(id = R.drawable.add_icono_d),
-                contentDescription = "Realizar una nueva donación",
-                contentScale = ContentScale.Fit,
-                modifier = Modifier.size(60.dp)
-            )
         }
     }
 }
