@@ -20,6 +20,7 @@ import androidx.compose.material.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
+import androidx.compose.foundation.clickable
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
@@ -81,9 +82,11 @@ fun RoundedBoxModifier(
 }
 
 @Composable
-fun DonationsScreen(navController: NavController, showDialog: Boolean = false) {
+fun DonationsScreen(navController: NavController, showDialog: Boolean = false, showFilter: Boolean = false) {
     // Estado para controlar la visibilidad del diálogo
     var isDialogVisible by rememberSaveable { mutableStateOf(showDialog) }
+    // Estado para controlar la visibilidad de la ventana para filtrar los datos
+    var isFilterVisible by rememberSaveable { mutableStateOf(showFilter) }
 
     // Observa si se debe mostrar el diálogo desde el savedStateHandle
     LaunchedEffect(navController) {
@@ -101,6 +104,26 @@ fun DonationsScreen(navController: NavController, showDialog: Boolean = false) {
                 // Guardar en savedStateHandle para persistencia
                 navController.currentBackStackEntry?.savedStateHandle?.set(
                     "showDonationDialog", false
+                )
+            }, navController = navController
+        )
+    }
+
+    // Observa si se debe mostrar el diálogo desde el savedStateHandle
+    LaunchedEffect(navController) {
+        navController.currentBackStackEntry?.savedStateHandle?.getLiveData<Boolean>("showFilterDonation")
+            ?.observeForever { shouldShow ->
+                isFilterVisible = shouldShow == true
+            }
+    }
+
+    if (isFilterVisible) {
+        FilterDonationScreen(
+            onDismiss = {
+                isDialogVisible = false
+                // Guardar en savedStateHandle para persistencia
+                navController.currentBackStackEntry?.savedStateHandle?.set(
+                    "showFilterDonation", false
                 )
             }, navController = navController
         )
@@ -127,9 +150,15 @@ fun DonationsScreen(navController: NavController, showDialog: Boolean = false) {
                     Spacer(modifier = Modifier.weight(1f))
                     Image(
                         painter = painterResource(id = R.drawable.filter_list),
-                        contentDescription = "Notificaciones donaciones",
+                        contentDescription = "Filtrar donaciones",
                         contentScale = ContentScale.Fit,
-                        modifier = Modifier.size(24.dp)
+                        modifier = Modifier
+                            .size(24.dp)
+                            .clickable { // Abrir la ventana de filtrar datos
+                                navController.currentBackStackEntry?.savedStateHandle?.set(
+                                    "showFilterDonation", true
+                                )
+                            }
                     )
                 }
                 Spacer(modifier = Modifier.height(14.dp))
