@@ -27,6 +27,7 @@ fun ProfileScreen(navController: NavController) {
     val auth = FirebaseAuth.getInstance()
 
     Scaffold(
+        containerColor = Color.White,  // Agregado para establecer fondo blanco
         topBar = { MainAppBar() },
         bottomBar = {
             // botón de cerrar sesión, cambiar tamaño y posición

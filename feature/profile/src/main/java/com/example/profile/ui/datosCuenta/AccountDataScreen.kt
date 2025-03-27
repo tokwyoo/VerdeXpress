@@ -16,40 +16,44 @@ import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
 import com.example.design.SFProDisplayBold
 import com.example.design.SFProDisplayMedium
+import com.example.design.MainAppBar
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun AccountDataScreen(navController: NavController) {
-    Column(modifier = Modifier.fillMaxSize()) {
-        // Top Bar
-        TopAppBar(
-            title = {
-                Text(
-                    "Datos de la cuenta",
-                    fontFamily = SFProDisplayBold,
-                    fontWeight = FontWeight.Bold
-                )
-            },
-            navigationIcon = {
-                IconButton(onClick = { navController.navigateUp() }) {
+    Scaffold(
+        containerColor = Color.White,
+        topBar = {
+            MainAppBar()
+        }
+    ) { paddingValues ->
+        Column(
+            modifier = Modifier
+                .fillMaxSize()
+                .padding(paddingValues)
+                .padding(horizontal = 16.dp)
+        ) {
+            Row(
+                verticalAlignment = Alignment.CenterVertically,
+                modifier = Modifier.padding(bottom = 24.dp)
+            ) {
+                IconButton(
+                    onClick = { navController.navigateUp() },
+                    modifier = Modifier.padding(end = 16.dp)
+                ) {
                     Icon(
                         imageVector = Icons.Default.ArrowBack,
                         contentDescription = "Regresar"
                     )
                 }
-            },
-            colors = TopAppBarDefaults.topAppBarColors(
-                containerColor = Color(0xFF78B153),
-                titleContentColor = Color.White,
-                navigationIconContentColor = Color.White
-            )
-        )
+                Text(
+                    text = "Datos de la cuenta",
+                    fontFamily = SFProDisplayBold,
+                    fontWeight = FontWeight.Bold,
+                    fontSize = 25.sp
+                )
+            }
 
-        Column(
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(16.dp)
-        ) {
             AccountInfoItem(
                 icon = Icons.Default.Lock,
                 title = "Contraseña",

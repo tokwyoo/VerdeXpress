@@ -17,6 +17,7 @@ import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
 import com.example.design.SFProDisplayBold
 import com.example.design.SFProDisplayMedium
+import com.example.design.MainAppBar
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -24,41 +25,39 @@ fun DeleteAccountScreen(navController: NavController) {
     var checked by remember { mutableStateOf(false) }
 
     Scaffold(
+        containerColor = Color.White,
         topBar = {
-            TopAppBar(
-                title = {
-                    Text(
-                        "Eliminar cuenta",
-                        fontFamily = SFProDisplayBold,
-                        fontWeight = FontWeight.Bold
-                    )
-                },
-                navigationIcon = {
-                    IconButton(onClick = { navController.navigateUp() }) {
-                        Icon(
-                            imageVector = Icons.Default.ArrowBack,
-                            contentDescription = "Regresar"
-                        )
-                    }
-                },
-                colors = TopAppBarDefaults.topAppBarColors(
-                    containerColor = Color(0xFF78B153),
-                    titleContentColor = Color.White,
-                    navigationIconContentColor = Color.White
-                )
-            )
+            MainAppBar()
         }
     ) { paddingValues ->
         Column(
             modifier = Modifier
                 .fillMaxSize()
-                .padding(paddingValues),
-            horizontalAlignment = Alignment.CenterHorizontally
+                .padding(paddingValues)
+                .padding(horizontal = 16.dp)
         ) {
+            Row(
+                verticalAlignment = Alignment.CenterVertically,
+                modifier = Modifier.padding(bottom = 24.dp)
+            ) {
+                IconButton(
+                    onClick = { navController.navigateUp() },
+                    modifier = Modifier.padding(end = 16.dp)
+                ) {
+                    Icon(
+                        imageVector = Icons.Default.ArrowBack,
+                        contentDescription = "Regresar"
+                    )
+                }
+                Text(
+                    text = "Eliminar cuenta",
+                    fontFamily = SFProDisplayBold,
+                    fontWeight = FontWeight.Bold,
+                    fontSize = 25.sp
+                )
+            }
+
             Column(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(16.dp),
                 horizontalAlignment = Alignment.CenterHorizontally
             ) {
                 // mensaje para eliminar cuenta
