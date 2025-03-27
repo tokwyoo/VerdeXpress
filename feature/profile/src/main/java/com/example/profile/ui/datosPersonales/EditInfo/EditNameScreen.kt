@@ -64,7 +64,7 @@ fun EditNameScreen(navController: NavController) {
             )
 
             Text(
-                text = "Emilio Pérez",
+                text = "Sofía",
                 modifier = Modifier.padding(bottom = 32.dp),
                 fontFamily = SFProDisplayMedium,
                 fontSize = 15.sp

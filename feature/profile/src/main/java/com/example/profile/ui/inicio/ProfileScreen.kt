@@ -113,12 +113,12 @@ fun ProfileScreen(navController: NavController) {
                                 .weight(1f)
                         ) {
                             Text(
-                                text = "Emilio Pérez",
+                                text = "Sofía",
                                 fontFamily = SFProDisplayBold,
                                 fontWeight = FontWeight.Bold
                             )
                             Text(
-                                text = "email@email.com",
+                                text = "sofia@gmail.com",
                                 fontFamily = SFProDisplayMedium,
                                 color = Color.Gray,
                                 fontSize = 14.sp

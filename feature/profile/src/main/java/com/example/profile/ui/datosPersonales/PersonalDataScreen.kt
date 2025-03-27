@@ -64,7 +64,7 @@ fun PersonalDataScreen(navController: NavController) {
                 PersonalInfoItem(
                     icon = Icons.Default.Person,
                     title = "Nombre y apellido",
-                    value = "Emilio Pérez",
+                    value = "Sofía",
                     onEdit = {
                         navController.navigate("editName")
                     }
@@ -86,7 +86,7 @@ fun PersonalDataScreen(navController: NavController) {
                 PersonalInfoItem(
                     icon = Icons.Default.Email,
                     title = "E-mail",
-                    value = "email@email.com",
+                    value = "sofia@gmail.com",
                     onEdit = {
                         navController.navigate("editEmail")
                     }

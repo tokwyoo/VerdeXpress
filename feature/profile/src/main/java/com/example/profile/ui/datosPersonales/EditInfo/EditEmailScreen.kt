@@ -21,7 +21,7 @@ import com.example.design.MainAppBar
 @Composable
 fun EditEmailScreen(navController: NavController) {
     var newEmail by remember { mutableStateOf("") }
-    val currentEmail = "email@email.com"
+    val currentEmail = "sofia@gmail.com"
 
     Scaffold(
         containerColor = Color.White,
