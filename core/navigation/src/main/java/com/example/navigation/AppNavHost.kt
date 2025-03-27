@@ -42,7 +42,7 @@ import com.example.profile.ui.datosCuenta.AccountDataScreen
 import com.example.profile.ui.datosPersonales.PersonalDataScreen
 import com.example.profile.ui.eliminarCuenta.DeleteAccountScreen
 import com.example.profile.ui.eliminarCuenta.DeleteUserLoadingScreen
-import com.example.profile.ui.eliminarCuenta.DeleteUserScreen
+import com.example.profile.ui.eliminarCuenta.DeleteUserConfirmationScreen
 import com.example.profile.ui.datosPersonales.EditInfo.EditNameScreen
 import com.example.profile.ui.datosPersonales.EditInfo.EditPhoneScreen
 import com.example.profile.ui.datosPersonales.EditInfo.EditEmailScreen
@@ -337,7 +337,7 @@ fun AppNavHost(navController: NavHostController, modifier: Modifier = Modifier) 
         //ruta de eliminación de cuenta
         composable("eliminarCuenta") { DeleteAccountScreen(navController) }
         composable("DeleteUserLoading") { DeleteUserLoadingScreen(navController) }
-        composable("DeleteUser") { DeleteUserScreen(navController) }
+        composable("DeleteUser") { DeleteUserConfirmationScreen(navController) }
         // rutas de edición de datos personales
         composable("editName") { EditNameScreen(navController) }
         composable("editPhone") { EditPhoneScreen(navController) }

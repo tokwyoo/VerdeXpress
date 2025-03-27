@@ -8,8 +8,7 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.text.font.Font
-import androidx.compose.ui.text.font.FontFamily
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -18,6 +17,8 @@ import com.airbnb.lottie.compose.LottieAnimation
 import com.airbnb.lottie.compose.LottieCompositionSpec
 import com.airbnb.lottie.compose.rememberLottieComposition
 import com.example.design.R
+import com.example.design.SFProDisplayBold
+import com.example.design.SFProDisplayMedium
 import kotlinx.coroutines.delay
 
 @Composable
@@ -56,7 +57,8 @@ fun DeleteUserLoadingScreen(navController: NavController) {
                             color = Color(0xFF78B153),
                             fontSize = 20.sp,
                             textAlign = TextAlign.Center,
-                            fontFamily = FontFamily(Font(R.font.sf_pro_display_bold)),
+                            fontFamily = SFProDisplayBold,
+                            fontWeight = FontWeight.Bold,
                             modifier = Modifier.padding(bottom = 16.dp)
                         )
 

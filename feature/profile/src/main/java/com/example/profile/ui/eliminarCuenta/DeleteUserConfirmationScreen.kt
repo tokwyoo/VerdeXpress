@@ -10,8 +10,7 @@ import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.text.font.Font
-import androidx.compose.ui.text.font.FontFamily
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -20,9 +19,11 @@ import com.example.design.R
 import com.airbnb.lottie.compose.LottieAnimation
 import com.airbnb.lottie.compose.LottieCompositionSpec
 import com.airbnb.lottie.compose.rememberLottieComposition
+import com.example.design.SFProDisplayBold
+import com.example.design.SFProDisplayMedium
 
 @Composable
-fun DeleteUserScreen(navController: NavController) {
+fun DeleteUserConfirmationScreen(navController: NavController) {
     val verdeBoton = Color(0xFF78B153)
     val roundedShape = RoundedCornerShape(12.dp)
 
@@ -48,7 +49,8 @@ fun DeleteUserScreen(navController: NavController) {
             color = Color(0xFF78B153),
             fontSize = 20.sp,
             textAlign = TextAlign.Center,
-            fontFamily = FontFamily(Font(R.font.sf_pro_display_bold)),
+            fontFamily = SFProDisplayBold,
+            fontWeight = FontWeight.Bold,
             modifier = Modifier.padding(vertical = 16.dp)
         )
 
@@ -56,7 +58,7 @@ fun DeleteUserScreen(navController: NavController) {
             text = "Te hemos enviado un correo electrónico acerca de la eliminación de tu cuenta",
             fontSize = 16.sp,
             textAlign = TextAlign.Center,
-            fontFamily = FontFamily(Font(R.font.sf_pro_display_regular)),
+            fontFamily = SFProDisplayMedium,
             modifier = Modifier
                 .fillMaxWidth()
                 .padding(horizontal = 16.dp)
@@ -80,7 +82,8 @@ fun DeleteUserScreen(navController: NavController) {
                 text = "Aceptar",
                 color = Color.White,
                 fontSize = 16.sp,
-                fontFamily = FontFamily(Font(R.font.sf_pro_display_bold))
+                fontFamily = SFProDisplayBold,
+                fontWeight = FontWeight.Bold
             )
         }
     }
