@@ -23,6 +23,7 @@ fun EditNameScreen(navController: NavController) {
     var newName by remember { mutableStateOf("") }
 
     Scaffold(
+        containerColor = Color.White,
         topBar = {
             MainAppBar()
         }
@@ -77,9 +78,9 @@ fun EditNameScreen(navController: NavController) {
                 modifier = Modifier.padding(bottom = 8.dp)
             )
 
-            TextField(
+            OutlinedTextField(
                 value = newName,
-                onValueChange = { value -> newName = value },
+                onValueChange = { newName = it },
                 modifier = Modifier.fillMaxWidth(),
                 placeholder = {
                     Text(
@@ -88,14 +89,18 @@ fun EditNameScreen(navController: NavController) {
                         fontSize = 15.sp
                     )
                 },
-                colors = TextFieldDefaults.colors(
+                colors = OutlinedTextFieldDefaults.colors(
+                    // Color gris para el estado base del borde
+                    unfocusedBorderColor = Color.Gray.copy(alpha = 0.5f),
+                    // Color verde para el estado de enfoque
+                    focusedBorderColor = Color(0xFF78B153),
+                    // Color de fondo blanco en todos los estados
                     unfocusedContainerColor = Color.White,
-                    focusedContainerColor = Color.White,
-                    focusedIndicatorColor = Color(0xFF78B153),
-                    unfocusedIndicatorColor = Color(0xFF78B153)
+                    focusedContainerColor = Color.White
                 ),
                 singleLine = true,
-                shape = RoundedCornerShape(4.dp),
+                // Aumentar el radio de redondeo para un borde más suave
+                shape = RoundedCornerShape(8.dp),
                 textStyle = LocalTextStyle.current.copy(
                     fontFamily = SFProDisplayMedium,
                     fontSize = 15.sp

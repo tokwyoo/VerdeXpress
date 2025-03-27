@@ -100,7 +100,9 @@ fun DeleteAccountScreen(navController: NavController) {
 
                 Row(
                     verticalAlignment = Alignment.CenterVertically,
-                    modifier = Modifier.fillMaxWidth().padding(horizontal = 16.dp)
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(horizontal = 16.dp)
                 ) {
                     Checkbox(
                         checked = checked,
@@ -127,7 +129,10 @@ fun DeleteAccountScreen(navController: NavController) {
                     modifier = Modifier.fillMaxWidth()
                 ) {
                     Button(
-                        onClick = { /* Acción para eliminar cuenta */ },
+                        onClick = {
+                            // Navigate to the DeleteUserLoading screen
+                            navController.navigate("DeleteUserLoading")
+                        },
                         modifier = Modifier
                             .width(205.dp)
                             .height(70.dp)
