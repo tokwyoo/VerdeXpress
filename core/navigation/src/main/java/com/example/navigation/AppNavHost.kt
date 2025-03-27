@@ -311,7 +311,7 @@ fun AppNavHost(navController: NavHostController, modifier: Modifier = Modifier) 
 
         // RUTAS DEL MÓDULO "DONATIONS"
 
-        composable("donationsWithDialog") { DonationsScreen(navController = navController, showDialog = true) }
+        composable("donationsWithDialog") { DonationsScreen(navController = navController, showDialog = true, showFilter = true)}
         composable("donacionEspecie") { EspecieFormScreen(navController) }
         composable("donacionMonetaria") { MonetariaFormScreen(navController, donacionMonetariaViewModel) }
         composable("metodoPagoTarjeta") { MetodoPagoTarjetaScreen(navController, donacionMonetariaViewModel) }
