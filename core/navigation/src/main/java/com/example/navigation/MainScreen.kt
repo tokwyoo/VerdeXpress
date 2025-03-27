@@ -54,6 +54,9 @@ fun MainScreen() {
                 "Donaciones" -> true
                 "Notificaciones" -> true
                 "Perfil" -> true
+                "datosPersonales" -> true
+                "datosCuenta" -> true
+                "eliminarCuenta" -> true
                 else -> false
             }
         }

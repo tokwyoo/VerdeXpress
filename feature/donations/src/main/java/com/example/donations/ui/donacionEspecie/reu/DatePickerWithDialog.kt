@@ -40,6 +40,10 @@ fun DatePickerWithDialog(
     // Get today's date and convert to millis
     val calendar = Calendar.getInstance()
     val todayMillis = calendar.timeInMillis
+    val maxDateCalendar = Calendar.getInstance().apply {
+        add(Calendar.MONTH, 2)
+    }
+    val maxDateMillis = maxDateCalendar.timeInMillis
 
     // Create state with today as initial selection
     val datePickerState = rememberDatePickerState(
@@ -51,7 +55,7 @@ fun DatePickerWithDialog(
                 val selectedCalendar = Calendar.getInstance()
                 selectedCalendar.timeInMillis = utcTimeMillis
                 // Comparar con la fecha actual
-                return !selectedCalendar.before(calendar)
+                return !selectedCalendar.before(calendar) && !selectedCalendar.after(maxDateCalendar)
             }
         }
     )
