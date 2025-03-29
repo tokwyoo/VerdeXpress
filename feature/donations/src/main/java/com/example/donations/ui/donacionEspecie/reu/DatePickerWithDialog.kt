@@ -51,10 +51,8 @@ fun DatePickerWithDialog(
     }
     val todayMillis = utcCalendar.timeInMillis
 
-    // Fecha mínima (ayer)
-    val minDateCalendar = utcCalendar.clone() as Calendar
-    minDateCalendar.add(Calendar.DAY_OF_MONTH, -1)
-    val minDateMillis = minDateCalendar.timeInMillis
+    // Fecha mínima (hoy)
+    val minDateMillis = todayMillis
 
     // Fecha máxima (hoy + 2 meses)
     val maxDateCalendar = utcCalendar.clone() as Calendar
@@ -74,12 +72,12 @@ fun DatePickerWithDialog(
         },
         initialDisplayedMonthMillis = todayMillis,
         yearRange = IntRange(
-            minDateCalendar.get(Calendar.YEAR),
+            utcCalendar.get(Calendar.YEAR),
             maxDateCalendar.get(Calendar.YEAR)
         ),
         selectableDates = object : SelectableDates {
             override fun isSelectableDate(utcTimeMillis: Long): Boolean {
-                // Permitimos desde ayer (incluyendo) hasta 2 meses después
+                // Permitimos desde hoy (incluyendo) hasta 2 meses después
                 return utcTimeMillis >= minDateMillis && utcTimeMillis <= maxDateMillis
             }
         }
