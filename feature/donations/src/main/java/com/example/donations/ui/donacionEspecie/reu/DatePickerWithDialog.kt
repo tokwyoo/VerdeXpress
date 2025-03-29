@@ -1,5 +1,8 @@
 package com.example.donations.ui.donacionEspecie.reu
 
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.DatePicker
 import androidx.compose.material3.DatePickerDialog
 import androidx.compose.material3.ExperimentalMaterial3Api
@@ -9,12 +12,14 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.material3.rememberDatePickerState
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.derivedStateOf
-import androidx.compose.runtime.remember
+import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.unit.dp
 import java.text.SimpleDateFormat
 import java.util.Calendar
+import java.util.Date
 import java.util.Locale
+import java.util.TimeZone
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -23,12 +28,11 @@ fun DatePickerWithDialog(
     onDateSelected: (String) -> Unit,
     onDismiss: () -> Unit
 ) {
-    val dateFormatter = SimpleDateFormat("dd/MM/yyyy", Locale("es", "MX"))
-
-    // Define el color verde para todo el DatePicker
+    val dateFormatter = SimpleDateFormat("dd/MM/yyyy", Locale("es", "MX")).apply {
+        timeZone = TimeZone.getTimeZone("UTC")
+    }
     val verdeBoton = Color(0xFF78B153)
 
-    // Personaliza el esquema de colores
     val customColorScheme = MaterialTheme.colorScheme.copy(
         primary = verdeBoton,
         onPrimary = Color.White,
@@ -37,70 +41,89 @@ fun DatePickerWithDialog(
         tertiary = verdeBoton
     )
 
-    // Get today's date and convert to millis
-    val calendar = Calendar.getInstance()
-    val todayMillis = calendar.timeInMillis
-    val maxDateCalendar = Calendar.getInstance().apply {
-        add(Calendar.MONTH, 2)
+    // Configuramos el calendario en UTC
+    val utcCalendar = Calendar.getInstance(TimeZone.getTimeZone("UTC")).apply {
+        // Reseteamos horas, minutos, segundos y milisegundos
+        set(Calendar.HOUR_OF_DAY, 0)
+        set(Calendar.MINUTE, 0)
+        set(Calendar.SECOND, 0)
+        set(Calendar.MILLISECOND, 0)
     }
+    val todayMillis = utcCalendar.timeInMillis
+
+    // Fecha mínima (ayer)
+    val minDateCalendar = utcCalendar.clone() as Calendar
+    minDateCalendar.add(Calendar.DAY_OF_MONTH, -1)
+    val minDateMillis = minDateCalendar.timeInMillis
+
+    // Fecha máxima (hoy + 2 meses)
+    val maxDateCalendar = utcCalendar.clone() as Calendar
+    maxDateCalendar.add(Calendar.MONTH, 2)
     val maxDateMillis = maxDateCalendar.timeInMillis
 
-    // Create state with today as initial selection
+    // Estado del DatePicker
     val datePickerState = rememberDatePickerState(
-        initialSelectedDateMillis = todayMillis,
+        initialSelectedDateMillis = if (selectedDate.isNotEmpty()) {
+            try {
+                dateFormatter.parse(selectedDate)?.time ?: todayMillis
+            } catch (e: Exception) {
+                todayMillis
+            }
+        } else {
+            todayMillis
+        },
+        initialDisplayedMonthMillis = todayMillis,
+        yearRange = IntRange(
+            minDateCalendar.get(Calendar.YEAR),
+            maxDateCalendar.get(Calendar.YEAR)
+        ),
         selectableDates = object : SelectableDates {
-            // Only allow selecting current and future dates
             override fun isSelectableDate(utcTimeMillis: Long): Boolean {
-                // Convertir los milisegundos a Calendar
-                val selectedCalendar = Calendar.getInstance()
-                selectedCalendar.timeInMillis = utcTimeMillis
-                // Comparar con la fecha actual
-                return !selectedCalendar.before(calendar) && !selectedCalendar.after(maxDateCalendar)
+                // Permitimos desde ayer (incluyendo) hasta 2 meses después
+                return utcTimeMillis >= minDateMillis && utcTimeMillis <= maxDateMillis
             }
         }
     )
 
-    val confirmEnabled = remember {
-        derivedStateOf { datePickerState.selectedDateMillis != null }
-    }
-
-    // Aplica el tema personalizado
-    MaterialTheme(
-        colorScheme = customColorScheme
-    ) {
+    MaterialTheme(colorScheme = customColorScheme) {
         DatePickerDialog(
-            onDismissRequest = { onDismiss() },
+            onDismissRequest = onDismiss,
             confirmButton = {
-                TextButton(
-                    onClick = {
-                        datePickerState.selectedDateMillis?.let { millis ->
-                            // Convertir los milisegundos a Calendar
-                            val selectedCalendar = Calendar.getInstance()
-                            selectedCalendar.timeInMillis = millis
-
-                            // Añadir un día para compensar el problema de zona horaria
-                            selectedCalendar.add(Calendar.DAY_OF_MONTH, 1)
-
-                            // Formatear la fecha
-                            val formattedDate = dateFormatter.format(selectedCalendar.time)
-                            onDateSelected(formattedDate)
-                        }
-                        onDismiss()
-                    },
-                    enabled = confirmEnabled.value
-                ) {
-                    Text("Aceptar")
+                Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                    TextButton(
+                        onClick = {
+                            datePickerState.selectedDateMillis?.let { millis ->
+                                // Aseguramos que la fecha esté dentro del rango permitido
+                                if (millis in minDateMillis..maxDateMillis) {
+                                    val formattedDate = dateFormatter.format(Date(millis))
+                                    onDateSelected(formattedDate)
+                                }
+                            }
+                            onDismiss()
+                        },
+                        enabled = datePickerState.selectedDateMillis?.let {
+                            it in minDateMillis..maxDateMillis
+                        } ?: false
+                    ) {
+                        Text("Aceptar")
+                    }
                 }
             },
             dismissButton = {
-                TextButton(
-                    onClick = { onDismiss() }
-                ) {
+                TextButton(onClick = onDismiss) {
                     Text("Cancelar")
                 }
             }
         ) {
-            DatePicker(state = datePickerState)
+            DatePicker(
+                state = datePickerState,
+                title = {
+                    Text(
+                        text = "Selecciona una fecha",
+                        modifier = Modifier.padding(start = 16.dp, top = 16.dp)
+                    )
+                }
+            )
         }
     }
 }

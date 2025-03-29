@@ -432,7 +432,7 @@ fun FormScreen(navController: NavController) {
 
                 CustomOutlinedTextField(
                     value = estimatedDonationDate,
-                    onValueChange = {  },
+                    onValueChange = { newDate -> estimatedDonationDate = newDate },
                     label = "Fecha estimada de donación",
                     isError = estimatedDonationDateError != null,
                     errorMessage = estimatedDonationDateError,
