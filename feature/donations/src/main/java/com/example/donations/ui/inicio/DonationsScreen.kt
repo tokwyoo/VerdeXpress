@@ -8,6 +8,7 @@ import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material.CircularProgressIndicator
 import androidx.compose.material.Text
 import androidx.compose.runtime.*
 import androidx.compose.runtime.saveable.rememberSaveable
@@ -24,14 +25,9 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
 import com.example.design.MainAppBar
+import com.example.donations.data.inicio.GetUserDonations
 import com.example.donations.R as RD
 import com.example.design.R
-
-data class Donation(
-    val parkName: String,
-    val details: String,
-    val date: String
-)
 
 @Composable
 fun DonationsScreen(
@@ -43,18 +39,33 @@ fun DonationsScreen(
     var isDialogVisible by rememberSaveable { mutableStateOf(showDialog) }
     var isFilterVisible by rememberSaveable { mutableStateOf(showFilter) }
 
-    // Lista de donaciones de ejemplo
-    val donationsList = remember {
-        listOf(
-            Donation("Las Minitas", "Monto XX,XXX", "09 Marzo 2025"),
-            Donation("Botánico", "Recurso donado \"Semillas\"", "09 Marzo 2025"),
-            Donation("El Mirador", "Recurso donado \"Herramientas\"", "01 Marzo 2025"),
-            Donation("Los Pinos", "Monto XX,XXX", "26 Febrero 2025"),
-            Donation("La Cañada", "Monto XX,XXX", "26 Febrero 2025"),
-            Donation("El Bosque", "Monto XX,XXX", "26 Febrero 2025"),
-            Donation("Las Flores", "Monto XX,XXX", "26 Febrero 2025"),
-            Donation("El Lago", "Monto XX,XXX", "26 Febrero 2025")
+    // Estados para gestionar las donaciones
+    var isLoading by remember { mutableStateOf(true) }
+    var donationsList by remember { mutableStateOf<List<GetUserDonations.UserDonation>>(emptyList()) }
+    var errorMessage by remember { mutableStateOf<String?>(null) }
+
+    // Instancia del gestor de donaciones
+    val userDonationManager = remember { GetUserDonations() }
+
+    // Cargar las donaciones al iniciar la pantalla
+    LaunchedEffect(Unit) {
+        userDonationManager.getUserDonations(
+            onSuccess = { donations ->
+                donationsList = donations
+                isLoading = false
+            },
+            onFailure = { exception ->
+                errorMessage = "Error al cargar donaciones: ${exception.message}"
+                isLoading = false
+            }
         )
+    }
+
+    // Limpiar listeners al salir de la pantalla
+    DisposableEffect(Unit) {
+        onDispose {
+            userDonationManager.removeListeners()
+        }
     }
 
     // Observar cambios en el estado de navegación para mostrar el diálogo de donación
@@ -117,7 +128,6 @@ fun DonationsScreen(
                         color = Color.Black
                     ),
                     fontFamily = FontFamily(Font(R.font.sf_pro_display_bold))
-
                 )
 
                 // Botón de filtro
@@ -146,24 +156,92 @@ fun DonationsScreen(
                     color = Color.Black
                 ),
                 fontFamily = FontFamily(Font(R.font.sf_pro_display_medium))
-
             )
 
             Spacer(modifier = Modifier.height(8.dp))
 
-            // Lista deslizable de donaciones
-            LazyColumn(
-                modifier = Modifier.fillMaxWidth(),
-                contentPadding = PaddingValues(vertical = 4.dp)
-            ) {
-                items(donationsList) { donation ->
-                    DonationItem(
-                        donation = donation,
-                        onDetailsClick = {
-                            // Aquí puedes agregar la navegación a la pantalla de detalles
-                            // navController.navigate("donation_details/${donation.parkName}")
+            // Mostrar el contenido según el estado
+            when {
+                isLoading -> {
+                    Box(
+                        modifier = Modifier.fillMaxSize(),
+                        contentAlignment = Alignment.Center
+                    ) {
+                        CircularProgressIndicator(color = Color(0xFF78B153))
+                    }
+                }
+                errorMessage != null -> {
+                    Box(
+                        modifier = Modifier.fillMaxSize(),
+                        contentAlignment = Alignment.Center
+                    ) {
+                        Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                            Text(
+                                text = errorMessage ?: "Error desconocido",
+                                style = TextStyle(
+                                    fontSize = 14.sp,
+                                    color = Color.Red
+                                ),
+                                fontFamily = FontFamily(Font(R.font.sf_pro_display_medium))
+                            )
+                            Spacer(modifier = Modifier.height(8.dp))
+                            Text(
+                                text = "Intentar de nuevo",
+                                style = TextStyle(
+                                    fontSize = 14.sp,
+                                    color = Color(0xFF78B153),
+                                    textDecoration = TextDecoration.Underline
+                                ),
+                                fontFamily = FontFamily(Font(R.font.sf_pro_display_medium)),
+                                modifier = Modifier.clickable {
+                                    isLoading = true
+                                    errorMessage = null
+                                    userDonationManager.getUserDonations(
+                                        onSuccess = { donations ->
+                                            donationsList = donations
+                                            isLoading = false
+                                        },
+                                        onFailure = { exception ->
+                                            errorMessage = "Error al cargar donaciones: ${exception.message}"
+                                            isLoading = false
+                                        }
+                                    )
+                                }
+                            )
                         }
-                    )
+                    }
+                }
+                donationsList.isEmpty() -> {
+                    Box(
+                        modifier = Modifier.fillMaxSize(),
+                        contentAlignment = Alignment.Center
+                    ) {
+                        Text(
+                            text = "No has realizado donaciones todavía",
+                            style = TextStyle(
+                                fontSize = 14.sp,
+                                color = Color.Gray
+                            ),
+                            fontFamily = FontFamily(Font(R.font.sf_pro_display_medium))
+                        )
+                    }
+                }
+                else -> {
+                    // Lista deslizable de donaciones
+                    LazyColumn(
+                        modifier = Modifier.fillMaxWidth(),
+                        contentPadding = PaddingValues(vertical = 4.dp)
+                    ) {
+                        items(donationsList) { donation ->
+                            DonationItem(
+                                donation = donation,
+                                onDetailsClick = {
+                                    // TODO: Agregar la navegación a la pantalla de detalles
+                                    //navController.navigate("donation_details/${donation.id}?type=${donation.type}")
+                                }
+                            )
+                        }
+                    }
                 }
             }
         }
@@ -173,7 +251,7 @@ fun DonationsScreen(
 // Componente individual para mostrar cada donación
 @Composable
 fun DonationItem(
-    donation: Donation,
+    donation: GetUserDonations.UserDonation,
     onDetailsClick: () -> Unit = {}
 ) {
     Box(
@@ -200,10 +278,9 @@ fun DonationItem(
                 style = TextStyle(
                     fontSize = 14.sp,
                     color = Color.Black
-                ) ,
+                ),
                 fontFamily = FontFamily(Font(R.font.sf_pro_display_bold))
-
-                )
+            )
             Spacer(modifier = Modifier.height(4.dp))
             // Detalles de la donación
             Text(
@@ -238,9 +315,7 @@ fun DonationItem(
                         fontSize = 12.sp,
                         color = Color.Black,
                         textDecoration = TextDecoration.Underline
-
                     ),
-
                     fontFamily = FontFamily(Font(R.font.sf_pro_display_medium)),
                     modifier = Modifier.clickable { onDetailsClick() }
                 )
