@@ -29,6 +29,7 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.compositionLocalOf
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -42,6 +43,9 @@ import androidx.compose.ui.unit.sp
 import androidx.compose.ui.zIndex
 import androidx.navigation.NavController
 import com.example.design.R
+
+// Creamos un CompositionLocal para compartir el estado del BottomBar
+val LocalBottomBarState = compositionLocalOf { mutableStateOf(true) }
 
 /**
  * Componente Composable para gestionar los filtros de donaciones.
@@ -59,11 +63,20 @@ fun DonationFilterManager(
     var appliedSortFilter by remember { mutableStateOf("") }
     var appliedTimeFilter by remember { mutableStateOf("") }
 
+    // Acceder al estado del BottomBar
+    val showBottomBar = LocalBottomBarState.current
+
     // Observar cambios en el estado para mostrar el filtro
     LaunchedEffect(navController) {
         navController.currentBackStackEntry?.savedStateHandle?.getLiveData<Boolean>("showFilterDonation")
             ?.observeForever { shouldShow ->
                 isFilterVisible = shouldShow == true
+                // Ocultar el BottomBar cuando se muestra el filtro
+                if (shouldShow == true) {
+                    showBottomBar.value = false
+                } else {
+                    showBottomBar.value = true
+                }
             }
     }
 
