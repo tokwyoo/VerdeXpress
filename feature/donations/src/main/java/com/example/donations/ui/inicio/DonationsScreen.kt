@@ -35,6 +35,12 @@ fun DonationsScreen(
     showDialog: Boolean = false,
     showFilter: Boolean = false
 ) {
+
+    DonationFilterManager(
+        navController = navController,
+        initialShowFilter = showFilter
+    )
+
     // Estado para controlar la visibilidad de los diálogos
     var isDialogVisible by rememberSaveable { mutableStateOf(showDialog) }
     var isFilterVisible by rememberSaveable { mutableStateOf(showFilter) }
@@ -87,24 +93,42 @@ fun DonationsScreen(
         )
     }
 
-    // Observar cambios en el estado de navegación para mostrar la pantalla de filtro
+    // Estados para los filtros aplicados
+    var appliedSortFilter by remember { mutableStateOf("") }
+    var appliedTimeFilter by remember { mutableStateOf("") }
+
+    // Observar cambios en los filtros aplicados
     LaunchedEffect(navController) {
-        navController.currentBackStackEntry?.savedStateHandle?.getLiveData<Boolean>("showFilterDonation")
-            ?.observeForever { shouldShow ->
-                isFilterVisible = shouldShow == true
+        navController.currentBackStackEntry?.savedStateHandle?.getLiveData<Map<String, String>>("appliedFilters")
+            ?.observeForever { filters ->
+                if (filters != null) {
+                    appliedSortFilter = filters["sort"] ?: ""
+                    appliedTimeFilter = filters["time"] ?: ""
+
+                    // Aplicar los filtros a la lista de donaciones
+                    if (isLoading || errorMessage != null) return@observeForever
+
+                    var filteredList = donationsList
+
+                    // Aplicar filtro de ordenamiento por nombre (A-Z o Z-A)
+                    filteredList = when (appliedSortFilter) {
+                        "A-Z" -> filteredList.sortedBy { it.parkName }
+                        "Z-A" -> filteredList.sortedByDescending { it.parkName }
+                        else -> filteredList
+                    }
+
+                    // Aplicar filtro de tiempo (si no hay filtro por nombre o después de aplicarlo)
+                    filteredList = when (appliedTimeFilter) {
+                        "Más recientes" -> filteredList.sortedByDescending { it.rawDate }
+                        "Más antiguas" -> filteredList.sortedBy { it.rawDate }
+                        else -> filteredList
+                    }
+
+                    donationsList = filteredList
+                }
             }
     }
 
-    // Mostrar pantalla de filtro si es necesario
-    if (isFilterVisible) {
-        FilterDonationScreen(
-            onDismiss = {
-                isFilterVisible = false
-                navController.currentBackStackEntry?.savedStateHandle?.set("showFilterDonation", false)
-            },
-            navController = navController
-        )
-    }
 
     // Estructura principal de la pantalla
     Column(
