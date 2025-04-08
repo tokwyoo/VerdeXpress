@@ -270,6 +270,8 @@ fun DonationFilterPanel(
                             )
                         }
 
+                        Divider(modifier = Modifier.padding(vertical = 16.dp))
+
                         Spacer(modifier = Modifier.weight(1f))
 
                         // Botones de acción en la parte inferior
