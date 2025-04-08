@@ -39,11 +39,11 @@ fun NotificationsScreen(
 ) {
     NotificationFilterManager(
         navController = navController,
-        initialShowFilter = showFilter
+        initialShowFilter = false
     )
 
     // Estado para controlar la visibilidad del filtro
-    var isFilterVisible by rememberSaveable { mutableStateOf(showFilter) }
+    var isFilterVisible by rememberSaveable { mutableStateOf(false) }
 
     // Estados para gestionar las notificaciones
     var isLoading by remember { mutableStateOf(true) }

@@ -43,7 +43,10 @@ import androidx.compose.ui.unit.sp
 import androidx.compose.ui.zIndex
 import androidx.navigation.NavController
 import com.example.design.R
+import com.example.donations.ui.inicio.LocalBottomBarState
 
+// Creamos un CompositionLocal para compartir el estado del BottomBar
+val LocalBottomBarState = compositionLocalOf { mutableStateOf(true) }
 
 /**
  * Componente Composable para gestionar los filtros de notificaciones.
@@ -61,7 +64,7 @@ fun NotificationFilterManager(
     var appliedSortFilter by remember { mutableStateOf("") }
     var appliedTimeFilter by remember { mutableStateOf("") }
 
-    // Acceder al estado del BottomBar usando el LocalBottomBarState existente
+    // Acceder al estado del BottomBar
     val showBottomBar = LocalBottomBarState.current
 
     // Observar cambios en el estado para mostrar el filtro
@@ -354,6 +357,3 @@ fun FilterButton(
         )
     }
 }
-
-// We need to import the LocalBottomBarState from your previous code
-val LocalBottomBarState = compositionLocalOf { mutableStateOf(true) }

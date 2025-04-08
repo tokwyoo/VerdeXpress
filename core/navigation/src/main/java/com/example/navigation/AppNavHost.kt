@@ -145,7 +145,7 @@ fun AppNavHost(navController: NavHostController, modifier: Modifier = Modifier) 
         composable(NavigationItem.Home.route) { HomeScreen() }
         composable(NavigationItem.Parks.route) { ParksScreen(navController = navController) }
         composable(NavigationItem.Donations.route) { DonationsScreen(navController) }
-        composable(NavigationItem.Notifications.route) { NotificationsScreen(navController = navController, showFilter = true ) }
+        composable(NavigationItem.Notifications.route) { NotificationsScreen(navController) }
         composable(NavigationItem.Profile.route) { ProfileScreen(navController) }
 
         // ----------------------------------------------------------------
