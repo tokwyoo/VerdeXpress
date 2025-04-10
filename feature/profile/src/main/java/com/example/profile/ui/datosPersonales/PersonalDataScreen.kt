@@ -1,29 +1,77 @@
 package com.example.profile.ui.datosPersonales
 
-import androidx.compose.foundation.layout.*
+import android.util.Log
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ArrowBack
 import androidx.compose.material.icons.filled.Email
 import androidx.compose.material.icons.filled.Person
 import androidx.compose.material.icons.filled.Phone
-import androidx.compose.material3.*
+import androidx.compose.material3.Button
+import androidx.compose.material3.ButtonDefaults
+import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
+import androidx.compose.material3.Scaffold
+import androidx.compose.material3.Surface
+import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
+import com.example.design.MainAppBar
 import com.example.design.SFProDisplayBold
 import com.example.design.SFProDisplayMedium
-import com.example.design.MainAppBar
+import com.example.profile.data.UserData
+import com.example.profile.data.obtenerIDUsuario
+import com.google.firebase.auth.FirebaseAuth
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun PersonalDataScreen(navController: NavController) {
+
+    val auth = FirebaseAuth.getInstance()
+    val currentUser = auth.currentUser
+    val userId = currentUser?.uid
+
+    var userData by remember { mutableStateOf<UserData?>(null) } // Estado para almacenar los datos del usuario
+
+    LaunchedEffect(userId) { // Ejecutar solo cuando userId cambie
+        if (userId != null) {
+            obtenerIDUsuario(
+                userId = userId,
+                onSuccess = { data ->
+                    userData = data
+                },
+                onFailure = { exception ->
+                    // Manejar el error
+                    Log.e("ProfileScreen", "Error al obtener datos del usuario", exception)
+                }
+            )
+        }
+    }
+
     Scaffold(
         containerColor = Color.White,
         topBar = {
@@ -36,9 +84,14 @@ fun PersonalDataScreen(navController: NavController) {
                 .padding(paddingValues)
                 .padding(horizontal = 16.dp)
         ) {
+            Spacer(modifier = Modifier.height(16.dp))
+
             Row(
                 verticalAlignment = Alignment.CenterVertically,
-                modifier = Modifier.padding(bottom = 24.dp)
+                horizontalArrangement = Arrangement.SpaceBetween,
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(bottom = 24.dp)
             ) {
                 IconButton(
                     onClick = { navController.navigateUp() },
@@ -53,18 +106,25 @@ fun PersonalDataScreen(navController: NavController) {
                     text = "Datos personales",
                     fontFamily = SFProDisplayBold,
                     fontWeight = FontWeight.Bold,
-                    fontSize = 25.sp
+                    fontSize = 25.sp,
+                    modifier = Modifier.weight(1f),
+                    textAlign = TextAlign.Center
                 )
+                Spacer(modifier = Modifier.width(48.dp))
             }
+
+
 
             // Main Content
             Column(
                 modifier = Modifier.fillMaxWidth()
             ) {
+                Spacer(modifier = Modifier.height(8.dp)) // Add space below the title
+
                 PersonalInfoItem(
                     icon = Icons.Default.Person,
                     title = "Nombre y apellido",
-                    value = "Sofía",
+                    value = "${userData?.nombre ?: ""} ${userData?.apellidos ?: ""}", // Concatenamos nombre y apellido
                     onEdit = {
                         navController.navigate("editName")
                     }
@@ -75,7 +135,7 @@ fun PersonalDataScreen(navController: NavController) {
                 PersonalInfoItem(
                     icon = Icons.Default.Phone,
                     title = "Teléfono",
-                    value = "+52 662 XXX XXXX",
+                    value = userData?.numeroContacto ?: "Cargando...",
                     onEdit = {
                         navController.navigate("editPhone")
                     }
@@ -86,7 +146,7 @@ fun PersonalDataScreen(navController: NavController) {
                 PersonalInfoItem(
                     icon = Icons.Default.Email,
                     title = "E-mail",
-                    value = "sofia@gmail.com",
+                    value = userData?.correoElectronico ?: "Cargando...",
                     onEdit = {
                         navController.navigate("editEmail")
                     }

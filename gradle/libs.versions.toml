@@ -50,6 +50,7 @@ firebaseAuthVersion = "21.0.0"
 media3CommonKtx = "1.5.1"
 firebaseCrashlyticsBuildtools = "3.0.3"
 firebaseFirestore = "24.10.0"
+firebaseFirestoreVersion = "25.1.2"
 
 [libraries]
 androidx-activity-compose = { module = "androidx.activity:activity-compose", version.ref = "activityCompose" }
@@ -103,6 +104,7 @@ google-firebase-auth = { group = "com.google.firebase", name = "firebase-auth", 
 androidx-media3-common-ktx = { group = "androidx.media3", name = "media3-common-ktx", version.ref = "media3CommonKtx" }
 firebase-crashlytics-buildtools = { group = "com.google.firebase", name = "firebase-crashlytics-buildtools", version.ref = "firebaseCrashlyticsBuildtools" }
 google-firebase-firestore = { group = "com.google.firebase", name = "firebase-firestore", version.ref = "firebaseFirestore" }
+com-google-firebase-firebase-firestore = { group = "com.google.firebase", name = "firebase-firestore", version.ref = "firebaseFirestoreVersion" }
 
 [plugins]
 android-application = { id = "com.android.application", version.ref = "agp" }
