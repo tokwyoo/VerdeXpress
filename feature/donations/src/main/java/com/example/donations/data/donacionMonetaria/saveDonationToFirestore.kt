@@ -5,6 +5,7 @@ import com.google.firebase.Timestamp
 import com.google.firebase.firestore.ktx.firestore
 import com.google.firebase.ktx.Firebase
 import com.google.firebase.auth.FirebaseAuth
+import com.google.firebase.firestore.FieldValue
 import java.util.Calendar
 import java.util.TimeZone
 
@@ -67,4 +68,25 @@ fun saveDonationToFirestore(
             // Error al guardar los datos
             Log.e("Firestore", "Error al guardar la donación: ${e.message}")
         }
+
+    // Agregar notificación al usuario
+    val notificationData = hashMapOf(
+        "titulo" to "¡Tu donación monetaria ha sido procesada!",
+        "mensaje" to "Tu donación al parque $parqueSeleccionado ha sido procesada y registrada por el sistema. Puedes ver los detalles y consultar tu comprobante en la sección Donaciones de la app. Gracias por confiar en VerdeXpress para cuidar Hermosillo.",
+        "fecha" to FieldValue.serverTimestamp(),
+        "leido" to false,
+        "destinatario" to auth.currentUser?.uid,
+    )
+
+    db.collection("notificaciones_user")
+        .add(notificationData)
+        .addOnSuccessListener {
+            // Éxito al agregar la notificación
+            Log.d("Firestore", "Notificación agregada correctamente con id: ${it.id}")
+        }
+        .addOnFailureListener { e ->
+            // Error al agregar la notificación
+            Log.e("Firestore", "Error al agregar la notificación: ${e.message}")
+        }
+
 }
