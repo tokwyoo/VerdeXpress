@@ -221,8 +221,8 @@ fun ParkDetailsContent(park: ParkDataA, navController: NavController) {
                 }
             }
 
-            // Recibiendo donaciones
-            item {
+            // Recibiendo donaciones old
+            /*item {
                 Text(
                     text = "Recibiendo donaciones",
                     fontSize = 20.sp,
@@ -244,6 +244,162 @@ fun ParkDetailsContent(park: ParkDataA, navController: NavController) {
                     letterSpacing = 0.25.sp,
                 )
                 Spacer(modifier = Modifier.height(16.dp))
+            }*/
+
+            // Recibiendo donaciones new
+            item {
+                when (park.situacion) {
+                    "Recibiendo donaciones" -> {
+                        Column {
+                            Text(
+                                text = "Recibiendo donaciones",
+                                fontSize = 20.sp,
+                                fontFamily = SFProDisplayBold,
+                                modifier = Modifier.padding(bottom = 8.dp),
+                                lineHeight = 20.sp,
+                                fontWeight = FontWeight(700),
+                                color = Color.Black,
+                                letterSpacing = 0.25.sp,
+                            )
+                            Text(
+                                text = "El parque se encuentra recibiendo donaciones.",
+                                fontSize = 14.sp,
+                                fontFamily = SFProDisplayBold,
+                                modifier = Modifier.padding(bottom = 8.dp),
+                                lineHeight = 20.sp,
+                                fontWeight = FontWeight(500),
+                                color = Color.DarkGray,
+                                letterSpacing = 0.25.sp,
+                            )
+                            Spacer(modifier = Modifier.height(16.dp))
+                        }
+                    }
+                    "Financiación completada" -> {
+                        Column {
+                            Text(
+                                text = "Financiación completada",
+                                fontSize = 20.sp,
+                                fontFamily = SFProDisplayBold,
+                                modifier = Modifier.padding(bottom = 8.dp),
+                                lineHeight = 20.sp,
+                                fontWeight = FontWeight(700),
+                                color = verde,
+                                letterSpacing = 0.25.sp,
+                            )
+                            Text(
+                                text = "El parque ha llegado a su meta de donaciones",
+                                fontSize = 14.sp,
+                                fontFamily = SFProDisplayBold,
+                                modifier = Modifier.padding(bottom = 8.dp),
+                                lineHeight = 20.sp,
+                                fontWeight = FontWeight(500),
+                                color = Color.DarkGray,
+                                letterSpacing = 0.25.sp,
+                            )
+                            Spacer(modifier = Modifier.height(16.dp))
+                        }
+                    }
+                    "En desarrollo" -> {
+                        Column {
+                            Text(
+                                text = "En desarrollo",
+                                fontSize = 20.sp,
+                                fontFamily = SFProDisplayBold,
+                                modifier = Modifier.padding(bottom = 8.dp),
+                                lineHeight = 20.sp,
+                                fontWeight = FontWeight(700),
+                                color = Color(0xFFF39C12), // Color naranja
+                                letterSpacing = 0.25.sp,
+                            )
+                            Text(
+                                text = "El parque se encuentra en fase de construcción y mejoras.",
+                                fontSize = 14.sp,
+                                fontFamily = SFProDisplayBold,
+                                modifier = Modifier.padding(bottom = 8.dp),
+                                lineHeight = 20.sp,
+                                fontWeight = FontWeight(500),
+                                color = Color.DarkGray,
+                                letterSpacing = 0.25.sp,
+                            )
+                            Spacer(modifier = Modifier.height(16.dp))
+                        }
+                    }
+                    "Mantenimiento requerido" -> {
+                        Column {
+                            Text(
+                                text = "Mantenimiento requerido",
+                                fontSize = 20.sp,
+                                fontFamily = SFProDisplayBold,
+                                modifier = Modifier.padding(bottom = 8.dp),
+                                lineHeight = 20.sp,
+                                fontWeight = FontWeight(700),
+                                color = Color(0xFFE74C3C), // Color rojo
+                                letterSpacing = 0.25.sp,
+                            )
+                            Text(
+                                text = "El parque requiere mantenimiento. Se aceptan donaciones.",
+                                fontSize = 14.sp,
+                                fontFamily = SFProDisplayBold,
+                                modifier = Modifier.padding(bottom = 8.dp),
+                                lineHeight = 20.sp,
+                                fontWeight = FontWeight(500),
+                                color = Color.DarkGray,
+                                letterSpacing = 0.25.sp,
+                            )
+                            Spacer(modifier = Modifier.height(16.dp))
+                        }
+                    }
+                    "Inactivo" -> {
+                        Column {
+                            Text(
+                                text = "Inactivo",
+                                fontSize = 20.sp,
+                                fontFamily = SFProDisplayBold,
+                                modifier = Modifier.padding(bottom = 8.dp),
+                                lineHeight = 20.sp,
+                                fontWeight = FontWeight(700),
+                                color = Color.Gray,
+                                letterSpacing = 0.25.sp,
+                            )
+                            Text(
+                                text = "El parque se encuentra temporalmente inactivo.",
+                                fontSize = 14.sp,
+                                fontFamily = SFProDisplayBold,
+                                modifier = Modifier.padding(bottom = 8.dp),
+                                lineHeight = 20.sp,
+                                fontWeight = FontWeight(500),
+                                color = Color.DarkGray,
+                                letterSpacing = 0.25.sp,
+                            )
+                            Spacer(modifier = Modifier.height(16.dp))
+                        }
+                    }
+                    else -> {
+                        Column {
+                            Text(
+                                text = "Estado desconocido",
+                                fontSize = 20.sp,
+                                fontFamily = SFProDisplayBold,
+                                modifier = Modifier.padding(bottom = 8.dp),
+                                lineHeight = 20.sp,
+                                fontWeight = FontWeight(700),
+                                color = Color.DarkGray,
+                                letterSpacing = 0.25.sp,
+                            )
+                            Text(
+                                text = "No se pudo determinar el estado actual del parque.",
+                                fontSize = 14.sp,
+                                fontFamily = SFProDisplayBold,
+                                modifier = Modifier.padding(bottom = 8.dp),
+                                lineHeight = 20.sp,
+                                fontWeight = FontWeight(500),
+                                color = Color.DarkGray,
+                                letterSpacing = 0.25.sp,
+                            )
+                            Spacer(modifier = Modifier.height(16.dp))
+                        }
+                    }
+                }
             }
 
             // Necesidades del parque (lista con bullets)
@@ -343,8 +499,8 @@ fun ParkDetailsContent(park: ParkDataA, navController: NavController) {
                 }
             }
 
-            // Botón de donación
-            item {
+            // Botón de donación old
+            /*item {
                 Button(
                     onClick = { /*navController.navigate("Donaciones")*/ },
                     modifier = Modifier
@@ -362,6 +518,60 @@ fun ParkDetailsContent(park: ParkDataA, navController: NavController) {
                         fontSize = 16.sp,
                         fontWeight = FontWeight.Bold
                     )
+                }
+            }*/
+
+            // Botón de donación new
+            val puedeDonar = when (park.situacion) {
+                "Recibiendo donaciones", "Mantenimiento requerido" -> true
+                else -> false
+            }
+
+            if (puedeDonar) {
+                item {
+                    Button(
+                        onClick = { navController.navigate("Donaciones") },
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(bottom = 32.dp)
+                            .height(50.dp),
+                        colors = ButtonDefaults.buttonColors(
+                            containerColor = verde,
+                            contentColor = Color.White
+                        ),
+                        shape = RoundedCornerShape(12.dp)
+                    ) {
+                        Text(
+                            text = "Hacer donación",
+                            fontSize = 16.sp,
+                            fontWeight = FontWeight.Bold
+                        )
+                    }
+                }
+            } else {
+                item {
+                    Box(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(bottom = 32.dp)
+                            .height(50.dp)
+                            .clip(RoundedCornerShape(12.dp))
+                            .background(Color.LightGray.copy(alpha = 0.5f))
+                            .padding(horizontal = 16.dp),
+                        contentAlignment = Alignment.Center
+                    ) {
+                        Text(
+                            text = when (park.situacion) {
+                                "Financiación completada" -> "Financiación completada"
+                                "En desarrollo" -> "En construcción"
+                                "Inactivo" -> "Parque inactivo"
+                                else -> "Donaciones no disponibles"
+                            },
+                            fontSize = 16.sp,
+                            fontWeight = FontWeight.Bold,
+                            color = Color.Gray
+                        )
+                    }
                 }
             }
         }
