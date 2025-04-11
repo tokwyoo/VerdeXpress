@@ -23,7 +23,14 @@ class GetParks {
                         val nombre = document.getString("nombre") ?: "Desconocido"
                         val imagenes = document.get("imagenes") as? List<String> ?: emptyList()
                         val primeraImagen = imagenes.firstOrNull() ?: ""
-                        parks.add(ParkData(nombre, primeraImagen))
+                        val latitud = document.getString("latitud") ?: "Desconocida"
+                        val longitud = document.getString("longitud") ?: "Desconocida"
+                        val necesidades = document.get("necesidades") as? List<String> ?: emptyList()
+                        val estado = document.getString("estado_actual") ?: "Desconocido"
+                        val comentarios = document.get("comentarios") as? List<String> ?: emptyList()
+                        val situacion = document.getString("situacion_actual") ?: "Desconocido"
+
+                        parks.add(ParkData(nombre, primeraImagen, latitud, longitud, necesidades, estado, comentarios, situacion))
                     }
                 }
                 onSuccess(parks)
@@ -35,4 +42,4 @@ class GetParks {
     }
 }
 
-data class ParkData(val nombre: String, val primeraImagen: String)
+data class ParkData(val nombre: String, val primeraImagen: String, val latitud: String, val longitud: String, val necesidades: List<String>, val estado: String, val comentarios: List<String>, val situacion: String)

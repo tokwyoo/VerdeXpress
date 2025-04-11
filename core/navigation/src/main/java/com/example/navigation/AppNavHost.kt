@@ -1,6 +1,7 @@
 package com.example.navigation
 
 import android.net.Uri
+import com.example.parks.ui.ParkDetails
 import androidx.compose.animation.EnterTransition
 import androidx.compose.animation.ExitTransition
 import androidx.compose.runtime.Composable
@@ -31,6 +32,7 @@ import com.example.parks.ui.RegisterParkSuccessScreen
 import com.example.parks.ui.SharedViewModel
 import java.net.URLDecoder
 import androidx.lifecycle.viewmodel.compose.viewModel
+import androidx.navigation.compose.currentBackStackEntryAsState
 import com.example.auth.data.SignUpValidator
 import com.example.donations.data.donacionMonetaria.DonacionMonetariaViewModel
 import com.google.firebase.auth.FirebaseAuth
@@ -38,6 +40,7 @@ import com.example.donations.ui.donacionEspecie.FormScreen as EspecieFormScreen
 import com.example.donations.ui.donacionMonetaria.FormScreen as MonetariaFormScreen
 import com.example.donations.ui.donacionMonetaria.MetodoPagoTarjetaScreen
 import com.example.donations.ui.donacionMonetaria.MetodoPagoPaypalScreen
+import com.example.parks.ui.ParkDetailsN
 import com.example.profile.ui.datosCuenta.AccountDataScreen
 import com.example.profile.ui.datosPersonales.PersonalDataScreen
 import com.example.profile.ui.eliminarCuenta.DeleteAccountScreen
@@ -51,6 +54,8 @@ import com.example.profile.ui.inicio.ProfileScreen
 
 @Composable
 fun AppNavHost(navController: NavHostController, modifier: Modifier = Modifier) {
+    val navBackStackEntry by navController.currentBackStackEntryAsState()
+
     // Initialize the shared view models
     val sharedViewModel: SharedViewModel = viewModel() // Este es de Parks, debería tener un nombre más descriptivo...
     val donacionMonetariaViewModel: DonacionMonetariaViewModel = viewModel()
@@ -306,6 +311,27 @@ fun AppNavHost(navController: NavHostController, modifier: Modifier = Modifier) 
 
         // Ruta de pantalla de éxito de registro de parque
         composable("registerParkSuccess") { RegisterParkSuccessScreen(navController = navController) }
+
+
+        // Ruta a detalles de parque
+        composable("editPassword") { EditPasswordScreen(navController) }
+        //composable("parkDetails") { ParkDetails(navController = navController) }
+
+        composable(
+            route = "parkDetails/{parkName}?latitud={latitud}&longitud={longitud}",
+            arguments = listOf(
+                navArgument("parkName") { type = NavType.StringType },
+                navArgument("latitud") { type = NavType.StringType },
+                navArgument("longitud") { type = NavType.StringType }
+            )
+        ) { backStackEntry ->
+            ParkDetails(
+                parkName = backStackEntry.arguments?.getString("parkName"),
+                latitud = backStackEntry.arguments?.getString("latitud"),
+                longitud = backStackEntry.arguments?.getString("longitud"),
+                navController = navController
+            )
+        }
 
         // ----------------------------------------------------------------
 

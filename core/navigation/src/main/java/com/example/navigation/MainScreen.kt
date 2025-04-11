@@ -57,6 +57,7 @@ fun MainScreen() {
                 "datosPersonales" -> true
                 "datosCuenta" -> true
                 "eliminarCuenta" -> true
+                "parkDetails" -> true
                 else -> false
             }
         }
