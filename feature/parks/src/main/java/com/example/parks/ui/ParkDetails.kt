@@ -312,7 +312,7 @@ fun ParkDetailsContent(park: ParkDataA, navController: NavController) {
                         color = Color.Black
                     )
 
-                    if (park.imagenes.isEmpty() /*park.imagenesAvance.isEmpty()*/) {
+                    if (/*park.imagenes.isEmpty()*/ park.imagenesAvance.isEmpty()) {
                         Text(
                             text = "No hay imágenes de avance disponibles",
                             fontSize = 14.sp,
@@ -324,7 +324,7 @@ fun ParkDetailsContent(park: ParkDataA, navController: NavController) {
                             horizontalArrangement = Arrangement.spacedBy(12.dp),
                             modifier = Modifier.padding(bottom = 24.dp)
                         ) {
-                            items(park.imagenes /*park.imagenesAvance*/) { imagenUrl ->
+                            items(/*park.imagenes*/ park.imagenesAvance) { imagenUrl ->
                                 Box(
                                     modifier = Modifier
                                         .size(120.dp)

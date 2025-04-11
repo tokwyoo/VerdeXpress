@@ -57,6 +57,7 @@ fun getParkDetails(parkName: String, onSuccess: (ParkDataA) -> Unit, onFailure: 
                 val document = result.documents[0]
                 val nombre = document.getString("nombre") ?: "Desconocido"
                 val imagenes = document.get("imagenes") as? List<String> ?: emptyList()
+                val imagenesAvance = document.get("imagenes_avances") as? List<String> ?: emptyList()
                 val primeraImagen = imagenes.firstOrNull() ?: ""
                 val necesidades = document.get("necesidades") as? List<String> ?: emptyList()
                 val estado = document.getString("estado_actual") ?: "Desconocido"
@@ -74,7 +75,7 @@ fun getParkDetails(parkName: String, onSuccess: (ParkDataA) -> Unit, onFailure: 
                 if(latitud.toDoubleOrNull()== null || longitud.toDoubleOrNull() == null){
                     onFailure(Exception("Coordenadas no válidas"))
                 } else {
-                    val parkData = ParkDataA(nombre, imagenes, primeraImagen, necesidades, estado, comentarios, latitud, longitud, situacion, usuarioId, fecha, comNeed, ubi, comAd, razonCierre)
+                    val parkData = ParkDataA(nombre, imagenes, imagenesAvance, primeraImagen, necesidades, estado, comentarios, latitud, longitud, situacion, usuarioId, fecha, comNeed, ubi, comAd, razonCierre)
                     onSuccess(parkData)
                 }
             } else {
@@ -89,6 +90,7 @@ fun getParkDetails(parkName: String, onSuccess: (ParkDataA) -> Unit, onFailure: 
 data class ParkDataA(
     val nombre: String,
     val imagenes: List<String>,
+    val imagenesAvance: List<String>,
     val primeraImagen: String,
     val necesidades: List<String>,
     val estado: String,
