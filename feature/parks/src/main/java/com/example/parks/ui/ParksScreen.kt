@@ -1,17 +1,8 @@
 package com.example.parks.ui
 
 import androidx.compose.foundation.background
-import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.PaddingValues
-import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
-import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.clickable
+import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -33,9 +24,12 @@ import androidx.navigation.NavController
 import coil.compose.AsyncImage
 import com.example.design.MainAppBar
 import com.example.design.R
+import com.example.parks.data.ParkData
 
 val SFProDisplayBold = FontFamily(Font(R.font.sf_pro_display_bold))
+val SFProDisplayM = FontFamily(Font(R.font.sf_pro_display_medium))
 val RobotoBold = FontFamily(Font(R.font.roboto_bold))
+val verde = Color(0xFF78B153)
 
 @Composable
 fun ParksScreen(viewModel: ParkViewModel = viewModel(), navController: NavController) {
@@ -71,20 +65,16 @@ fun ParksScreen(viewModel: ParkViewModel = viewModel(), navController: NavContro
                     ) {
                         parksPair.forEach { park ->
                             Box(modifier = Modifier.weight(1f)) {
-                                ParkItem(
-                                    imageUrl = park.primeraImagen,
-                                    parkName = park.nombre
-                                )
+                                ParkItem(park = park, navController = navController)
                             }
                         }
-                        // Add an empty Box if there's an odd number of parks
+
                         if (parksPair.size < 2) {
-                            Box(modifier = Modifier.weight(1f))
+                            Box(modifier = Modifier.weight(1f)) // para mantener el espaciado si es impar
                         }
                     }
 
-                    Spacer(modifier = Modifier.height(12.dp)) // Añadir padding inferior al final de cada fila
-
+                    Spacer(modifier = Modifier.height(12.dp)) // espacio entre filas
                 }
             }
         }
@@ -92,14 +82,22 @@ fun ParksScreen(viewModel: ParkViewModel = viewModel(), navController: NavContro
 }
 
 @Composable
-fun ParkItem(imageUrl: String, parkName: String) {
+fun ParkItem(park: ParkData, navController: NavController) {
     Box(
         modifier = Modifier
             .width(183.dp)
             .height(122.dp)
+            .clickable {
+                try {
+                    navController.navigate("parkDetails/${park.nombre}?latitud=${park.latitud}&longitud=${park.longitud}")
+
+                } catch (e: Exception) {
+                    println("Error al navegar: ${e.message}")
+                }
+            }
     ) {
         AsyncImage(
-            model = imageUrl,
+            model = park.primeraImagen,
             contentDescription = "Imagen del parque",
             modifier = Modifier
                 .fillMaxSize()
@@ -115,7 +113,7 @@ fun ParkItem(imageUrl: String, parkName: String) {
                 .background(Color.White.copy(alpha = 0.65f))
         ) {
             Text(
-                text = parkName,
+                text = park.nombre,
                 fontFamily = RobotoBold,
                 fontSize = 14.sp,
                 color = Color(0xFF484C52),
