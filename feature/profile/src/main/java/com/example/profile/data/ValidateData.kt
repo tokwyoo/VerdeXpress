@@ -1,6 +1,7 @@
 package com.example.profile.data
 
 import android.util.Log
+import com.google.firebase.auth.EmailAuthProvider
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.auth.FirebaseAuthException
 import com.google.firebase.firestore.FirebaseFirestore
@@ -49,39 +50,20 @@ fun actualizarNumeroContacto(userId: String, nuevoNumero: String? = null, onSucc
         }
 }
 
-suspend fun enviarCorreoVerificacionNuevoCorreo(nuevoCorreo: String, onSuccess: () -> Unit, onFailure: (Exception) -> Unit) {
-    val auth = FirebaseAuth.getInstance()
-    val currentUser = auth.currentUser
 
-    try {
-        currentUser?.updateEmail(nuevoCorreo)?.await()
-        currentUser?.sendEmailVerification()?.await()
-        Log.d("Auth", "Solicitud de verificación enviada a $nuevoCorreo.")
-        onSuccess()
+
+private suspend fun verifyUserPassword(password: String): Boolean {
+    val user = FirebaseAuth.getInstance().currentUser
+    if (user == null) {
+        return false
+    }
+    val credential = EmailAuthProvider.getCredential(user.email ?: "", password)
+    return try {
+        user.reauthenticate(credential).await()
+        true
     } catch (e: FirebaseAuthException) {
-        Log.e("EditEmail", "Error al solicitar verificación del nuevo correo (Auth)", e)
-        if (e.errorCode == "ERROR_REQUIRES_RECENT_LOGIN") {
-            onFailure(Exception("Esta operación requiere que vuelvas a iniciar sesión por seguridad."))
-        } else {
-            onFailure(e)
-        }
-    } catch (e: Exception) {
-        Log.e("EditEmail", "Error al solicitar verificación del nuevo correo (General)", e)
-        onFailure(e)
+        Log.e("Auth", "Error al reautenticar", e)
+        false
     }
 }
 
-// **Función para actualizar el correo electrónico en Firestore DESPUÉS de la verificación**
-suspend fun actualizarCorreoFirestore(userId: String, nuevoCorreo: String, onSuccess: () -> Unit, onFailure: (Exception) -> Unit) {
-    val db = FirebaseFirestore.getInstance()
-    val usuarioRef = db.collection("usuarios").document(userId)
-
-    try {
-        usuarioRef.update("correoElectronico", nuevoCorreo).await()
-        Log.d("Firestore", "Campo correoElectronico actualizado a $nuevoCorreo para el usuario $userId.")
-        onSuccess()
-    } catch (e: Exception) {
-        Log.e("EditEmail", "Error al actualizar el correo electrónico en Firestore", e)
-        onFailure(e)
-    }
-}

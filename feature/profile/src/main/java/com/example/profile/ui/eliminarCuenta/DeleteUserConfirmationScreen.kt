@@ -1,6 +1,12 @@
 package com.example.profile.ui.eliminarCuenta
 
-import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
@@ -15,10 +21,10 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
-import com.example.design.R
 import com.airbnb.lottie.compose.LottieAnimation
 import com.airbnb.lottie.compose.LottieCompositionSpec
 import com.airbnb.lottie.compose.rememberLottieComposition
+import com.example.design.R
 import com.example.design.SFProDisplayBold
 import com.example.design.SFProDisplayMedium
 
@@ -31,6 +37,7 @@ fun DeleteUserConfirmationScreen(navController: NavController) {
     val doneComposition by rememberLottieComposition(
         spec = LottieCompositionSpec.RawRes(R.raw.done_animation)
     )
+
 
     Column(
         modifier = Modifier.fillMaxSize(),
@@ -67,7 +74,7 @@ fun DeleteUserConfirmationScreen(navController: NavController) {
 
         Button(
             onClick = {
-                navController.navigate("Inicio") {
+                navController.navigate("SingInScreen") {
                     popUpTo(0) { inclusive = true }
                     launchSingleTop = true
                 }

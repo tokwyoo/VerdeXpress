@@ -9,15 +9,19 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ArrowBack
+import androidx.compose.material.icons.outlined.Visibility
+import androidx.compose.material.icons.outlined.VisibilityOff
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
+import androidx.compose.material3.IconButtonDefaults
 import androidx.compose.material3.LocalTextStyle
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.OutlinedTextFieldDefaults
@@ -33,7 +37,10 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.input.PasswordVisualTransformation
+import androidx.compose.ui.text.input.VisualTransformation
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -42,26 +49,25 @@ import com.example.design.MainAppBar
 import com.example.design.SFProDisplayBold
 import com.example.design.SFProDisplayMedium
 import com.example.profile.data.UserData
-import com.example.profile.data.actualizarCorreoFirestore
-import com.example.profile.data.enviarCorreoVerificacionNuevoCorreo
 import com.example.profile.data.obtenerIDUsuario
 import com.google.firebase.auth.FirebaseAuth
-import kotlinx.coroutines.launch
-import kotlinx.coroutines.tasks.await
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun EditEmailScreen(navController: NavController) {
     var newEmail by remember { mutableStateOf("") }
+    var currentPassword by remember { mutableStateOf("") }
+    // Eliminamos confirmPassword
     var emailError by remember { mutableStateOf<String?>(null) }
+    var verificationRequested by remember { mutableStateOf(false) }
     val auth = FirebaseAuth.getInstance()
     val currentUser = auth.currentUser
     val userId = currentUser?.uid
-
     var userData by remember { mutableStateOf<UserData?>(null) }
-    var verificationRequested by remember { mutableStateOf(false) } // Estado para indicar si se solicitó la verificación
-
     val coroutineScope = rememberCoroutineScope()
+    var currentPasswordVisible by remember { mutableStateOf(false) }
+    // Eliminamos confirmPasswordVisible
+    val context = LocalContext.current
 
     LaunchedEffect(userId) {
         if (userId != null) {
@@ -172,107 +178,75 @@ fun EditEmailScreen(navController: NavController) {
                     )
                 )
 
+                Text(
+                    text = "Ingresa tu contraseña",
+                    fontFamily = SFProDisplayBold,
+                    fontWeight = FontWeight.Bold,
+                    fontSize = 20.sp,
+                    modifier = Modifier.padding(top = 24.dp, bottom = 8.dp)
+                )
+
+                OutlinedTextField(
+                    value = currentPassword,
+                    onValueChange = { currentPassword = it },
+                    modifier = Modifier.fillMaxWidth(),
+                    placeholder = {
+                        Text(
+                            text = "Ingresar contraseña",
+                            fontFamily = SFProDisplayMedium,
+                            fontSize = 15.sp
+                        )
+                    },
+                    colors = OutlinedTextFieldDefaults.colors(
+                        unfocusedBorderColor = Color.Gray.copy(alpha = 0.5f),
+                        focusedBorderColor = Color(0xFF78B153),
+                        unfocusedContainerColor = Color.White,
+                        focusedContainerColor = Color.White,
+                        cursorColor = Color(0xFF78B153)
+                    ),
+                    singleLine = true,
+                    shape = RoundedCornerShape(8.dp),
+                    textStyle = LocalTextStyle.current.copy(
+                        fontFamily = SFProDisplayMedium,
+                        fontSize = 15.sp
+                    ),
+                    visualTransformation = if (currentPasswordVisible) VisualTransformation.None else PasswordVisualTransformation(),
+                    trailingIcon = {
+                        IconButton(
+                            onClick = { currentPasswordVisible = !currentPasswordVisible },
+                            colors = IconButtonDefaults.iconButtonColors(
+                                contentColor = Color(0xFF9E9E9E)
+                            )
+                        ) {
+                            Icon(
+                                imageVector = if (currentPasswordVisible) Icons.Outlined.Visibility else Icons.Outlined.VisibilityOff,
+                                contentDescription = if (currentPasswordVisible) "Ocultar contraseña" else "Mostrar contraseña",
+                                tint = Color(0xFF9E9E9E),
+                                modifier = Modifier.size(24.dp)
+                            )
+                        }
+                    }
+                )
+
+
+
                 Spacer(modifier = Modifier.height(44.dp))
 
                 Button(
                     onClick = {
-                        if (!newEmail.isNullOrBlank() && android.util.Patterns.EMAIL_ADDRESS.matcher(newEmail).matches()) {
-                            if (userId != null) {
-                                coroutineScope.launch {
-                                    Log.d("EditEmailScreen", "Intentando enviar verificación a: $newEmail")
-                                    enviarCorreoVerificacionNuevoCorreo(
-                                        nuevoCorreo = newEmail,
-                                        onSuccess = {
-                                            verificationRequested = true
-                                            emailError = "Se ha enviado un correo de verificación a $newEmail. Por favor, revisa tu bandeja de entrada y sigue las instrucciones."
-                                        },
-                                        onFailure = { e ->
-                                            Log.e("EditEmailScreen", "Error al solicitar verificación", e)
-                                            emailError = e.localizedMessage ?: "Error al solicitar la verificación del correo electrónico."
-                                            if (e.message?.contains("requires recent login", ignoreCase = true) == true) {
-                                                // **Aquí podrías navegar al flujo de reautenticación**
-                                                emailError = "Esta operación requiere que vuelvas a iniciar sesión por seguridad."
-                                            }
-                                        }
-                                    )
-                                }
-                            } else {
-                                Log.e("EditEmailScreen", "Error: userId es nulo")
-                            }
-                        } else {
-                            emailError = "Por favor, introduce un correo electrónico válido."
-                        }
-                    },
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .height(48.dp),
-                    colors = ButtonDefaults.buttonColors(
-                        containerColor = Color(0xFF78B153)
-                    ),
-                    shape = RoundedCornerShape(8.dp),
-                    enabled = !verificationRequested // Deshabilitar el botón después de solicitar la verificación
-                ) {
-                    Text(
-                        text = if (verificationRequested) "Verificación Enviada" else "Confirmar Nuevo Correo",
-                        fontFamily = SFProDisplayBold,
-                        fontSize = 18.sp
-                    )
-                }
 
-                if (emailError != null) {
-                    Text(
-                        text = emailError!!,
-                        color = Color.Red,
-                        fontSize = 12.sp,
-                        modifier = Modifier.padding(top = 4.dp)
-                    )
-                }
-
-                if (verificationRequested) {
-                    Button(
-                        onClick = {
-                            coroutineScope.launch {
-                                val currentUser = auth.currentUser
-                                // **Importante:** Después de que el usuario haga clic en el enlace de verificación
-                                // y regresa a la app, necesitamos comprobar si el *nuevo* correo
-                                // (que está ahora en currentUser.email) ha sido verificado.
-                                currentUser?.reload()
-                                    ?.await() // Recargar la información del usuario
-
-                                if (currentUser?.isEmailVerified == true && currentUser.email == newEmail && userId != null) {
-                                    actualizarCorreoFirestore(
-                                        userId = userId,
-                                        nuevoCorreo = newEmail,
-                                        onSuccess = {
-                                            navController.navigateUp()
-                                        },
-                                        onFailure = { e ->
-                                            Log.e(
-                                                "EditEmailScreen",
-                                                "Error al actualizar correo en Firestore",
-                                                e
-                                            )
-                                            emailError =
-                                                "Error al actualizar el correo en la base de datos."
-                                        }
-                                    )
-                                } else {
-                                    emailError =
-                                        "El nuevo correo electrónico aún no ha sido verificado. Por favor, revisa tu bandeja de entrada y haz clic en el enlace."
-                                }
-                            }
                         },
                         modifier = Modifier
                             .fillMaxWidth()
                             .height(48.dp)
                             .padding(top = 8.dp),
                         colors = ButtonDefaults.buttonColors(
-                            containerColor = Color(0xFF4CAF50)
+                            containerColor = Color(0xFF78B153)
                         ),
                         shape = RoundedCornerShape(8.dp)
                     ) {
                         Text(
-                            text = "Confirmar Correo Verificado",
+                            text = "He Verificado Mi Correo",
                             fontFamily = SFProDisplayBold,
                             fontSize = 18.sp
                         )
@@ -281,4 +255,3 @@ fun EditEmailScreen(navController: NavController) {
             }
         }
     }
-}
