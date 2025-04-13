@@ -1,94 +1,80 @@
 package com.example.donations.ui.inicio
 
-//noinspection UsingMaterialAndMaterial3Libraries
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
-import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
-import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.layout.width
-import androidx.compose.foundation.shape.RoundedCornerShape
-//noinspection UsingMaterialAndMaterial3Libraries
-import androidx.compose.material.Text
-import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.getValue
 import androidx.compose.foundation.clickable
-import androidx.compose.runtime.mutableStateOf
+import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material.CircularProgressIndicator
+import androidx.compose.material.Text
+import androidx.compose.runtime.*
 import androidx.compose.runtime.saveable.rememberSaveable
-import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.Font
 import androidx.compose.ui.text.font.FontFamily
-import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextDecoration
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
 import com.example.design.MainAppBar
-import com.example.donations.R
+import com.example.donations.data.inicio.GetUserDonations
+import com.example.donations.R as RD
+import com.example.design.R
 
 @Composable
-fun RoundedBoxModifier(
-    parkName: String, donationDetails: String, date: String, showDetails: String
+fun DonationsScreen(
+    navController: NavController,
+    showDialog: Boolean = false,
+    showFilter: Boolean = false
 ) {
-    Column(
-        modifier = Modifier
-            .shadow(
-                elevation = 4.dp, spotColor = Color(0x40000000), ambientColor = Color(0x40000000)
-            )
-            .border(
-                width = 1.dp, color = Color(0xFF78B153), shape = RoundedCornerShape(size = 5.dp)
-            )
-            .padding(1.dp)
-            .width(354.dp)
-            .height(74.dp)
-            .background(color = Color(0xFFFFFFFF), shape = RoundedCornerShape(size = 5.dp))
-            .padding(horizontal = 16.dp, vertical = 12.dp) // Ajustamos el padding aquí
-    ) {
-        Text(
-            text = "Parque \"$parkName\"", style = TextStyle(
-                fontSize = 14.sp, fontWeight = FontWeight.Bold
-            )
-        )
-        Text(
-            text = donationDetails, style = TextStyle(fontSize = 12.sp)
-        )
-        Row(
-            modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween
-        ) {
-            Text(
-                text = date, style = TextStyle(fontSize = 12.sp)
-            )
-            Text(
-                text = showDetails, style = TextStyle(
-                    fontSize = 12.sp, color = Color(0xFF000000)
-                )
-            )
-        }
-    }
-}
 
-@Composable
-fun DonationsScreen(navController: NavController, showDialog: Boolean = false, showFilter: Boolean = false) {
-    // Estado para controlar la visibilidad del diálogo
+    DonationFilterManager(
+        navController = navController,
+        initialShowFilter = showFilter
+    )
+
+    // Estado para controlar la visibilidad de los diálogos
     var isDialogVisible by rememberSaveable { mutableStateOf(showDialog) }
-    // Estado para controlar la visibilidad de la ventana para filtrar los datos
     var isFilterVisible by rememberSaveable { mutableStateOf(showFilter) }
 
-    // Observa si se debe mostrar el diálogo desde el savedStateHandle
+    // Estados para gestionar las donaciones
+    var isLoading by remember { mutableStateOf(true) }
+    var donationsList by remember { mutableStateOf<List<GetUserDonations.UserDonation>>(emptyList()) }
+    var errorMessage by remember { mutableStateOf<String?>(null) }
+
+    // Instancia del gestor de donaciones
+    val userDonationManager = remember { GetUserDonations() }
+
+    // Cargar las donaciones al iniciar la pantalla
+    LaunchedEffect(Unit) {
+        userDonationManager.getUserDonations(
+            onSuccess = { donations ->
+                donationsList = donations
+                isLoading = false
+            },
+            onFailure = { exception ->
+                errorMessage = "Error al cargar donaciones: ${exception.message}"
+                isLoading = false
+            }
+        )
+    }
+
+    // Limpiar listeners al salir de la pantalla
+    DisposableEffect(Unit) {
+        onDispose {
+            userDonationManager.removeListeners()
+        }
+    }
+
+    // Observar cambios en el estado de navegación para mostrar el diálogo de donación
     LaunchedEffect(navController) {
         navController.currentBackStackEntry?.savedStateHandle?.getLiveData<Boolean>("showDonationDialog")
             ?.observeForever { shouldShow ->
@@ -96,116 +82,266 @@ fun DonationsScreen(navController: NavController, showDialog: Boolean = false, s
             }
     }
 
-    // Mostrar el Dialog cuando `isDialogVisible` sea `true`
+    // Mostrar diálogo de tipo de donación si es necesario
     if (isDialogVisible) {
         DonationTypeDialog(
             onDismiss = {
                 isDialogVisible = false
-                // Guardar en savedStateHandle para persistencia
-                navController.currentBackStackEntry?.savedStateHandle?.set(
-                    "showDonationDialog", false
-                )
-            }, navController = navController
+                navController.currentBackStackEntry?.savedStateHandle?.set("showDonationDialog", false)
+            },
+            navController = navController
         )
     }
 
-    // Observa si se debe mostrar el diálogo desde el savedStateHandle
+    // Estados para los filtros aplicados
+    var appliedSortFilter by remember { mutableStateOf("") }
+    var appliedTimeFilter by remember { mutableStateOf("") }
+
+    // Observar cambios en los filtros aplicados
     LaunchedEffect(navController) {
-        navController.currentBackStackEntry?.savedStateHandle?.getLiveData<Boolean>("showFilterDonation")
-            ?.observeForever { shouldShow ->
-                isFilterVisible = shouldShow == true
+        navController.currentBackStackEntry?.savedStateHandle?.getLiveData<Map<String, String>>("appliedFilters")
+            ?.observeForever { filters ->
+                if (filters != null) {
+                    appliedSortFilter = filters["sort"] ?: ""
+                    appliedTimeFilter = filters["time"] ?: ""
+
+                    // Aplicar los filtros a la lista de donaciones
+                    if (isLoading || errorMessage != null) return@observeForever
+
+                    var filteredList = donationsList
+
+                    // Aplicar filtro de ordenamiento por nombre (A-Z o Z-A)
+                    filteredList = when (appliedSortFilter) {
+                        "A-Z" -> filteredList.sortedBy { it.parkName }
+                        "Z-A" -> filteredList.sortedByDescending { it.parkName }
+                        else -> filteredList
+                    }
+
+                    // Aplicar filtro de tiempo (si no hay filtro por nombre o después de aplicarlo)
+                    filteredList = when (appliedTimeFilter) {
+                        "Más recientes" -> filteredList.sortedByDescending { it.rawDate }
+                        "Más antiguas" -> filteredList.sortedBy { it.rawDate }
+                        else -> filteredList
+                    }
+
+                    donationsList = filteredList
+                }
             }
     }
 
-    if (isFilterVisible) {
-        FilterDonationScreen(
-            onDismiss = {
-                isDialogVisible = false
-                // Guardar en savedStateHandle para persistencia
-                navController.currentBackStackEntry?.savedStateHandle?.set(
-                    "showFilterDonation", false
-                )
-            }, navController = navController
-        )
-    }
 
-    // Contenido de la pantalla
+    // Estructura principal de la pantalla
     Column(
-        modifier = Modifier.fillMaxSize(), verticalArrangement = Arrangement.SpaceBetween
+        modifier = Modifier
+            .fillMaxSize()
+            .background(color = Color(0xFFFFFFFF))
     ) {
-        Column {
-            MainAppBar()
-            Column(modifier = Modifier.padding(16.dp)) {
-                Row(verticalAlignment = Alignment.CenterVertically) {
-                    Text(
-                        text = "Historial de donaciones", style = TextStyle(
-                            fontSize = 25.sp,
-                            lineHeight = 20.sp,
-                            fontFamily = FontFamily(Font(com.example.design.R.font.sf_pro_display_bold)),
-                            fontWeight = FontWeight(700),
-                            color = Color(0xFF000000),
-                            letterSpacing = 0.25.sp,
-                        )
-                    )
-                    Spacer(modifier = Modifier.weight(1f))
-                    Image(
-                        painter = painterResource(id = R.drawable.filter_list),
-                        contentDescription = "Filtrar donaciones",
-                        contentScale = ContentScale.Fit,
-                        modifier = Modifier
-                            .size(24.dp)
-                            .clickable { // Abrir la ventana de filtrar datos
-                                navController.currentBackStackEntry?.savedStateHandle?.set(
-                                    "showFilterDonation", true
-                                )
-                            }
-                    )
-                }
-                Spacer(modifier = Modifier.height(14.dp))
+        MainAppBar()
+
+        Column(modifier = Modifier.padding(horizontal = 16.dp, vertical = 26.dp)) {
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.SpaceBetween
+            ) {
+                // Título
                 Text(
-                    text = "Últimas donaciones hechas", style = TextStyle(
-                        fontSize = 14.sp,
-                        lineHeight = 20.sp,
-                        fontFamily = FontFamily(Font(com.example.design.R.font.sf_pro_display_medium)),
-                        fontWeight = FontWeight(700),
-                        color = Color(0xFF000000),
-                        letterSpacing = 0.25.sp,
-                    )
-                )
-                Spacer(modifier = Modifier.height(14.dp))
-                // Usando el recuadro reutilizable
-                RoundedBoxModifier(
-                    parkName = "Nombre del parque",
-                    donationDetails = "Monto $ XX,XXX",
-                    date = "09 Marzo 2025",
-                    showDetails = "Ver detalles"
+                    text = "Historial de donaciones",
+                    style = TextStyle(
+                        fontSize = 25.sp,
+                        color = Color.Black
+                    ),
+                    fontFamily = FontFamily(Font(R.font.sf_pro_display_bold))
                 )
 
-                Spacer(modifier = Modifier.height(8.dp))
+                // Botón de filtro
+                Image(
+                    painter = painterResource(id = RD.drawable.filter_list),
+                    contentDescription = "Filtrar donaciones",
+                    contentScale = ContentScale.Fit,
+                    modifier = Modifier
+                        .size(24.dp)
+                        .clickable {
+                            navController.currentBackStackEntry?.savedStateHandle?.set(
+                                "showFilterDonation",
+                                true
+                            )
+                        }
+                )
+            }
 
-                RoundedBoxModifier(
-                    parkName = "Nombre del parque",
-                    donationDetails = "Recurso donado \"nombre\"",
-                    date = "09 Marzo 2025",
-                    showDetails = "Ver detalles"
+            Spacer(modifier = Modifier.height(16.dp))
+
+            // Subtítulo
+            Text(
+                text = "Últimas donaciones hechas",
+                style = TextStyle(
+                    fontSize = 14.sp,
+                    color = Color.Black
+                ),
+                fontFamily = FontFamily(Font(R.font.sf_pro_display_medium))
+            )
+
+            Spacer(modifier = Modifier.height(8.dp))
+
+            // Mostrar el contenido según el estado
+            when {
+                isLoading -> {
+                    Box(
+                        modifier = Modifier.fillMaxSize(),
+                        contentAlignment = Alignment.Center
+                    ) {
+                        CircularProgressIndicator(color = Color(0xFF78B153))
+                    }
+                }
+                errorMessage != null -> {
+                    Box(
+                        modifier = Modifier.fillMaxSize(),
+                        contentAlignment = Alignment.Center
+                    ) {
+                        Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                            Text(
+                                text = errorMessage ?: "Error desconocido",
+                                style = TextStyle(
+                                    fontSize = 14.sp,
+                                    color = Color.Red
+                                ),
+                                fontFamily = FontFamily(Font(R.font.sf_pro_display_medium))
+                            )
+                            Spacer(modifier = Modifier.height(8.dp))
+                            Text(
+                                text = "Intentar de nuevo",
+                                style = TextStyle(
+                                    fontSize = 14.sp,
+                                    color = Color(0xFF78B153),
+                                    textDecoration = TextDecoration.Underline
+                                ),
+                                fontFamily = FontFamily(Font(R.font.sf_pro_display_medium)),
+                                modifier = Modifier.clickable {
+                                    isLoading = true
+                                    errorMessage = null
+                                    userDonationManager.getUserDonations(
+                                        onSuccess = { donations ->
+                                            donationsList = donations
+                                            isLoading = false
+                                        },
+                                        onFailure = { exception ->
+                                            errorMessage = "Error al cargar donaciones: ${exception.message}"
+                                            isLoading = false
+                                        }
+                                    )
+                                }
+                            )
+                        }
+                    }
+                }
+                donationsList.isEmpty() -> {
+                    Box(
+                        modifier = Modifier.fillMaxSize(),
+                        contentAlignment = Alignment.Center
+                    ) {
+                        Text(
+                            text = "No has realizado donaciones todavía",
+                            style = TextStyle(
+                                fontSize = 14.sp,
+                                color = Color.Gray
+                            ),
+                            fontFamily = FontFamily(Font(R.font.sf_pro_display_medium))
+                        )
+                    }
+                }
+                else -> {
+                    // Lista deslizable de donaciones
+                    LazyColumn(
+                        modifier = Modifier.fillMaxWidth(),
+                        contentPadding = PaddingValues(vertical = 4.dp)
+                    ) {
+                        items(donationsList) { donation ->
+                            DonationItem(
+                                donation = donation,
+                                onDetailsClick = {
+                                    // TODO: Agregar la navegación a la pantalla de detalles
+                                    //navController.navigate("donation_details/${donation.id}?type=${donation.type}")
+                                }
+                            )
+                        }
+                    }
+                }
+            }
+        }
+    }
+}
+
+// Componente individual para mostrar cada donación
+@Composable
+fun DonationItem(
+    donation: GetUserDonations.UserDonation,
+    onDetailsClick: () -> Unit = {}
+) {
+    Box(
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(vertical = 4.dp)
+            .background(
+                color = Color.White,
+                shape = RoundedCornerShape(size = 8.dp)
+            )
+            .border(
+                width = 1.dp,
+                color = Color(0xFF78B153),
+                shape = RoundedCornerShape(size = 8.dp)
+            )
+    ) {
+        // Contenido de la donación
+        Column(
+            modifier = Modifier.padding(16.dp)
+        ) {
+            // Nombre del parque
+            Text(
+                text = "Parque ${donation.parkName}",
+                style = TextStyle(
+                    fontSize = 14.sp,
+                    color = Color.Black
+                ),
+                fontFamily = FontFamily(Font(R.font.sf_pro_display_bold))
+            )
+            Spacer(modifier = Modifier.height(4.dp))
+            // Detalles de la donación
+            Text(
+                text = donation.details,
+                style = TextStyle(
+                    fontSize = 12.sp,
+                    color = Color.Black
+                ),
+                fontFamily = FontFamily(Font(R.font.sf_pro_display_medium))
+            )
+            Spacer(modifier = Modifier.height(8.dp))
+            // Fila inferior con fecha y botón de detalles
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.SpaceBetween,
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                // Fecha
+                Text(
+                    text = donation.date,
+                    style = TextStyle(
+                        fontSize = 12.sp,
+                        color = Color.Black
+                    ),
+                    fontFamily = FontFamily(Font(R.font.sf_pro_display_medium))
                 )
 
-                Spacer(modifier = Modifier.height(8.dp))
-
-                RoundedBoxModifier(
-                    parkName = "Nombre del parque",
-                    donationDetails = "Recurso donado \"nombre\"",
-                    date = "01 Marzo 2025",
-                    showDetails = "Ver detalles"
-                )
-
-                Spacer(modifier = Modifier.height(8.dp))
-
-                RoundedBoxModifier(
-                    parkName = "Nombre del parque",
-                    donationDetails = "Monto $ XX,XXX",
-                    date = "26 Febrero 2025",
-                    showDetails = "Ver detalles"
+                // Botón de detalles
+                Text(
+                    text = "Ver detalles",
+                    style = TextStyle(
+                        fontSize = 12.sp,
+                        color = Color.Black,
+                        textDecoration = TextDecoration.Underline
+                    ),
+                    fontFamily = FontFamily(Font(R.font.sf_pro_display_medium)),
+                    modifier = Modifier.clickable { onDetailsClick() }
                 )
             }
         }

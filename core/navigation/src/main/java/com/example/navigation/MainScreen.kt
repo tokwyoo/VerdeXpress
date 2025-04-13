@@ -5,6 +5,7 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material3.Scaffold
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
@@ -14,7 +15,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
-
+import com.example.donations.ui.inicio.LocalBottomBarState
 
 @Composable
 fun MainScreen() {
@@ -57,29 +58,33 @@ fun MainScreen() {
                 "datosPersonales" -> true
                 "datosCuenta" -> true
                 "eliminarCuenta" -> true
+                "parkDetails" -> true
                 else -> false
             }
         }
     }
 
-    Scaffold(
-        containerColor = Color(0xFFFFFFFF),
-        bottomBar = {
-            if (showBottomBar.value) {
-                BottomNavigationBar(
-                    navController = navController,
-                    items = listOf(
-                        NavigationItem.Home,
-                        NavigationItem.Parks,
-                        NavigationItem.Donations,
-                        NavigationItem.Notifications,
-                        NavigationItem.Profile
-                    ),
-                    fabConfig = fabConfig
-                )
+    // Proporcionar el estado del BottomBar a través de CompositionLocalProvider
+    CompositionLocalProvider(LocalBottomBarState provides showBottomBar) {
+        Scaffold(
+            containerColor = Color(0xFFFFFFFF),
+            bottomBar = {
+                if (showBottomBar.value) {
+                    BottomNavigationBar(
+                        navController = navController,
+                        items = listOf(
+                            NavigationItem.Home,
+                            NavigationItem.Parks,
+                            NavigationItem.Donations,
+                            NavigationItem.Notifications,
+                            NavigationItem.Profile
+                        ),
+                        fabConfig = fabConfig
+                    )
+                }
             }
+        ) { innerPadding ->
+            AppNavHost(navController = navController, modifier = Modifier.padding(innerPadding))
         }
-    ) { innerPadding ->
-        AppNavHost(navController = navController, modifier = Modifier.padding(innerPadding))
     }
 }
