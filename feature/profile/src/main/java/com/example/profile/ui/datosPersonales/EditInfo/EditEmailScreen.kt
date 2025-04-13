@@ -16,6 +16,7 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ArrowBack
 import androidx.compose.material.icons.outlined.Visibility
 import androidx.compose.material.icons.outlined.VisibilityOff
+import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.ExperimentalMaterial3Api
@@ -27,6 +28,7 @@ import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.OutlinedTextFieldDefaults
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
@@ -37,7 +39,6 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.text.input.VisualTransformation
@@ -49,25 +50,28 @@ import com.example.design.MainAppBar
 import com.example.design.SFProDisplayBold
 import com.example.design.SFProDisplayMedium
 import com.example.profile.data.UserData
+import com.example.profile.data.actualizarCorreoElectronicoConReautenticacion
 import com.example.profile.data.obtenerIDUsuario
 import com.google.firebase.auth.FirebaseAuth
+import kotlinx.coroutines.launch
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun EditEmailScreen(navController: NavController) {
     var newEmail by remember { mutableStateOf("") }
     var currentPassword by remember { mutableStateOf("") }
-    // Eliminamos confirmPassword
-    var emailError by remember { mutableStateOf<String?>(null) }
-    var verificationRequested by remember { mutableStateOf(false) }
     val auth = FirebaseAuth.getInstance()
     val currentUser = auth.currentUser
     val userId = currentUser?.uid
     var userData by remember { mutableStateOf<UserData?>(null) }
     val coroutineScope = rememberCoroutineScope()
     var currentPasswordVisible by remember { mutableStateOf(false) }
-    // Eliminamos confirmPasswordVisible
-    val context = LocalContext.current
+    var updateEmailSuccess by remember { mutableStateOf(false) }
+    var updateEmailError by remember { mutableStateOf<String?>(null) }
+    var puedeConfirmar by remember { mutableStateOf(false) }
+    var puedeVerificar by remember { mutableStateOf(true) }
+    var mostrarMensaje by remember { mutableStateOf(false) }
+
 
     LaunchedEffect(userId) {
         if (userId != null) {
@@ -234,24 +238,99 @@ fun EditEmailScreen(navController: NavController) {
 
                 Button(
                     onClick = {
+                        coroutineScope.launch {
+                            actualizarCorreoElectronicoConReautenticacion(
+                                nuevoCorreo = newEmail,
+                                contrasena = currentPassword,
+                                onSuccess = {
+                                    updateEmailSuccess = true
+                                    updateEmailError = null
+                                    Log.d(
+                                        "EditEmailScreen",
+                                        "Se solicitó la verificación del nuevo correo electrónico."
+                                    )
+                                },
+                                onFailure = { e ->
+                                    updateEmailSuccess = false
+                                    updateEmailError = e.localizedMessage
+                                        ?: "Error al solicitar la verificación del correo electrónico."
+                                    Log.e(
+                                        "EditEmailScreen",
+                                        "Error al solicitar la verificación del correo electrónico.",
+                                        e
+                                    )
+                                }
+                            )
 
-                        },
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .height(48.dp)
-                            .padding(top = 8.dp),
-                        colors = ButtonDefaults.buttonColors(
-                            containerColor = Color(0xFF78B153)
-                        ),
-                        shape = RoundedCornerShape(8.dp)
-                    ) {
-                        Text(
-                            text = "He Verificado Mi Correo",
+                        }
+                    },
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .height(48.dp)
+                        .padding(top = 8.dp),
+                    colors = ButtonDefaults.buttonColors(
+                        containerColor = Color(0xFF78B153)
+                    ),
+                    shape = RoundedCornerShape(8.dp),
+                    enabled = newEmail.isNotBlank() && currentPassword.isNotBlank()
+                ) {
+                    Text(
+                        text = "Verificar nuevo correo",
+                        fontFamily = SFProDisplayBold,
+                        fontSize = 18.sp
+                    )
+                }
+
+                // Se muestra un mensaje de éxito (se logró mandar el correo de verificación)
+                if (updateEmailSuccess) {
+                    AlertDialog(
+                        onDismissRequest = { updateEmailSuccess = false },
+                        title = { Text(
+                            text = "Éxito",
                             fontFamily = SFProDisplayBold,
                             fontSize = 18.sp
-                        )
-                    }
+                            ) },
+                        text = { Text(
+                            text = "Se ha enviado un correo de verificación a: $newEmail. " +
+                                    "Por favor, revisa tu bandeja de entrada y haz clic en el enlace para confirmar " +
+                                    "tu nuevo correo electrónico.",
+                            fontFamily = SFProDisplayBold,
+                            fontSize = 16.sp) },
+                        confirmButton = {
+                            TextButton(onClick = {
+                                updateEmailSuccess = false
+                            },
+                                colors = ButtonDefaults.buttonColors(
+                                    containerColor = Color(0xFF78B153)
+                                ),
+                                shape = RoundedCornerShape(8.dp)) {
+                                Text(
+                                    text = "Aceptar",
+                                    fontFamily = SFProDisplayBold,
+                                    fontSize = 12.sp
+                                )
+                            }
+                        }
+                    )
+                }
+
+                // Mostrar mensaje en caso de error error
+                if (updateEmailError != null) {
+                    AlertDialog(
+                        onDismissRequest = { updateEmailError = null },
+                        title = { Text("Error") },
+                        text = { Text(
+                            text = updateEmailError!!,
+                            fontFamily = SFProDisplayBold,
+                            fontSize = 18.sp) },
+                        confirmButton = {
+                            TextButton(onClick = { updateEmailError = null }) {
+                                Text("Aceptar")
+                            }
+                        }
+                    )
                 }
             }
         }
+    }
     }
