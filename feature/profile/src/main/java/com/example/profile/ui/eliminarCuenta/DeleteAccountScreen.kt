@@ -1,28 +1,89 @@
 package com.example.profile.ui.eliminarCuenta
 
+import android.util.Log
 import androidx.compose.foundation.border
-import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.*
-import androidx.compose.material3.*
-import androidx.compose.runtime.*
+import androidx.compose.material.icons.filled.ArrowBack
+import androidx.compose.material.icons.outlined.Visibility
+import androidx.compose.material.icons.outlined.VisibilityOff
+import androidx.compose.material3.AlertDialog
+import androidx.compose.material3.Button
+import androidx.compose.material3.ButtonDefaults
+import androidx.compose.material3.Checkbox
+import androidx.compose.material3.CheckboxDefaults
+import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
+import androidx.compose.material3.IconButtonDefaults
+import androidx.compose.material3.LocalTextStyle
+import androidx.compose.material3.OutlinedTextField
+import androidx.compose.material3.OutlinedTextFieldDefaults
+import androidx.compose.material3.Scaffold
+import androidx.compose.material3.Surface
+import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.input.PasswordVisualTransformation
+import androidx.compose.ui.text.input.VisualTransformation
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
+import com.example.design.MainAppBar
 import com.example.design.SFProDisplayBold
 import com.example.design.SFProDisplayMedium
-import com.example.design.MainAppBar
+import com.google.firebase.auth.EmailAuthProvider
+import com.google.firebase.auth.FirebaseAuth
+import com.google.firebase.auth.FirebaseAuthException
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.tasks.await
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun DeleteAccountScreen(navController: NavController) {
     var checked by remember { mutableStateOf(false) }
+    var currentPassword by remember { mutableStateOf("") }
+    var currentPasswordVisible by remember { mutableStateOf(false) }
+    val user = FirebaseAuth.getInstance().currentUser
+    val scope = rememberCoroutineScope()
+    var showDialog by remember { mutableStateOf(false) }
+    var dialogMessage by remember { mutableStateOf("") }
+
+    suspend fun verifyUserPassword(password: String): Boolean {
+        if (user == null) {
+            return false
+        }
+        val credential = EmailAuthProvider.getCredential(user.email ?: "", password)
+        return try {
+            user.reauthenticate(credential).await()
+            true
+        } catch (e: FirebaseAuthException) {
+            Log.e("Auth", "Error al reautenticar", e)
+            dialogMessage = "La contraseña actual es incorrecta."
+            showDialog = true
+            false
+        }
+    }
 
     Scaffold(
         containerColor = Color.White,
@@ -36,9 +97,14 @@ fun DeleteAccountScreen(navController: NavController) {
                 .padding(paddingValues)
                 .padding(horizontal = 16.dp)
         ) {
+            Spacer(modifier = Modifier.height(16.dp))
+
             Row(
                 verticalAlignment = Alignment.CenterVertically,
-                modifier = Modifier.padding(bottom = 24.dp)
+                horizontalArrangement = Arrangement.SpaceBetween,
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(bottom = 24.dp)
             ) {
                 IconButton(
                     onClick = { navController.navigateUp() },
@@ -53,8 +119,11 @@ fun DeleteAccountScreen(navController: NavController) {
                     text = "Eliminar cuenta",
                     fontFamily = SFProDisplayBold,
                     fontWeight = FontWeight.Bold,
-                    fontSize = 25.sp
+                    fontSize = 25.sp,
+                    modifier = Modifier.weight(1f),
+                    textAlign = TextAlign.Center
                 )
+                Spacer(modifier = Modifier.width(48.dp))
             }
 
             Column(
@@ -88,7 +157,7 @@ fun DeleteAccountScreen(navController: NavController) {
                         Spacer(modifier = Modifier.height(8.dp))
 
                         Text(
-                            text = "Recuerda que una vez que cierres tu cuenta, esta acción no se puede deshacer y la cuenta no se podrá recuperar. Si en el futuro deseas volver a realizar donaciones o nuevos registros que requieran una cuenta, deberás crear una cuenta nueva.",
+                            text = "Recuerda que una vez que cierres tu cuenta, esta acción no se puede deshacer y la cuenta no se podrá recuperar. Para continuar, necesitamos que confirmes tu identidad.",
                             fontFamily = SFProDisplayMedium,
                             color = Color.Gray
                         )
@@ -96,6 +165,58 @@ fun DeleteAccountScreen(navController: NavController) {
                 }
 
                 Spacer(modifier = Modifier.height(24.dp))
+
+                Text(
+                    text = "Ingresa tu contraseña actual para confirmar",
+                    fontFamily = SFProDisplayBold,
+                    fontWeight = FontWeight.Bold,
+                    fontSize = 20.sp,
+                    modifier = Modifier.padding(top = 24.dp, bottom = 8.dp)
+                )
+
+                OutlinedTextField(
+                    value = currentPassword,
+                    onValueChange = { currentPassword = it.replace("\n", "") },
+                    modifier = Modifier.fillMaxWidth(),
+                    placeholder = {
+                        Text(
+                            text = "Contraseña actual",
+                            fontFamily = SFProDisplayMedium,
+                            fontSize = 15.sp
+                        )
+                    },
+                    colors = OutlinedTextFieldDefaults.colors(
+                        unfocusedBorderColor = Color.Gray.copy(alpha = 0.5f),
+                        focusedBorderColor = Color(0xFF78B153),
+                        unfocusedContainerColor = Color.White,
+                        focusedContainerColor = Color.White,
+                        cursorColor = Color(0xFF78B153)
+                    ),
+                    singleLine = true,
+                    shape = RoundedCornerShape(8.dp),
+                    textStyle = LocalTextStyle.current.copy(
+                        fontFamily = SFProDisplayMedium,
+                        fontSize = 15.sp
+                    ),
+                    visualTransformation = if (currentPasswordVisible) VisualTransformation.None else PasswordVisualTransformation(),
+                    trailingIcon = {
+                        IconButton(
+                            onClick = { currentPasswordVisible = !currentPasswordVisible },
+                            colors = IconButtonDefaults.iconButtonColors(
+                                contentColor = Color(0xFF9E9E9E)
+                            )
+                        ) {
+                            Icon(
+                                imageVector = if (currentPasswordVisible) Icons.Outlined.Visibility else Icons.Outlined.VisibilityOff,
+                                contentDescription = if (currentPasswordVisible) "Ocultar contraseña" else "Mostrar contraseña",
+                                tint = Color(0xFF9E9E9E),
+                                modifier = Modifier.size(24.dp)
+                            )
+                        }
+                    }
+                )
+
+                Spacer(modifier = Modifier.height(16.dp))
 
                 Row(
                     verticalAlignment = Alignment.CenterVertically,
@@ -129,8 +250,29 @@ fun DeleteAccountScreen(navController: NavController) {
                 ) {
                     Button(
                         onClick = {
-                            // Navigate to the DeleteUserLoading screen
-                            navController.navigate("DeleteUserLoading")
+                            if (user != null && checked) {
+                                scope.launch {
+                                    if (verifyUserPassword(currentPassword)) {
+                                        user.delete()
+                                            .addOnCompleteListener { task ->
+                                                if (task.isSuccessful) {
+                                                    Log.d("DeleteAccount", "Cuenta eliminada correctamente.")
+                                                    navController.navigate("DeleteUser") {
+                                                        popUpTo("eliminarCuenta") { inclusive = true }
+                                                    }
+                                                } else {
+                                                    Log.e("DeleteAccount", "Error al eliminar la cuenta.", task.exception)
+                                                    dialogMessage = "Hubo un error al eliminar la cuenta. Por favor, intenta de nuevo más tarde."
+                                                    showDialog = true
+                                                }
+                                            }
+                                    }
+
+                                }
+                            } else if (!checked) {
+                                dialogMessage = "Debes aceptar los términos para eliminar tu cuenta."
+                                showDialog = true
+                            }
                         },
                         modifier = Modifier
                             .width(205.dp)
@@ -161,5 +303,18 @@ fun DeleteAccountScreen(navController: NavController) {
                 }
             }
         }
+    }
+
+    if (showDialog) {
+        AlertDialog(
+            onDismissRequest = { showDialog = false },
+            title = { Text("Error") },
+            text = { Text(dialogMessage) },
+            confirmButton = {
+                TextButton(onClick = { showDialog = false }) {
+                    Text("Aceptar")
+                }
+            }
+        )
     }
 }

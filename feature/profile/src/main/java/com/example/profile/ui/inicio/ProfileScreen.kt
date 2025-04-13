@@ -1,13 +1,34 @@
 package com.example.profile.ui.inicio
 
-import androidx.compose.foundation.layout.*
+import android.util.Log
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.*
+import androidx.compose.material.icons.filled.Person
 import androidx.compose.material.icons.outlined.KeyboardArrowRight
-import androidx.compose.material3.*
+import androidx.compose.material3.Button
+import androidx.compose.material3.ButtonDefaults
+import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.Icon
+import androidx.compose.material3.Scaffold
+import androidx.compose.material3.Surface
+import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
@@ -19,12 +40,34 @@ import androidx.navigation.NavController
 import com.example.design.MainAppBar
 import com.example.design.SFProDisplayBold
 import com.example.design.SFProDisplayMedium
+import com.example.profile.data.UserData
+import com.example.profile.data.obtenerIDUsuario
 import com.google.firebase.auth.FirebaseAuth
+
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun ProfileScreen(navController: NavController) {
     val auth = FirebaseAuth.getInstance()
+    val currentUser = auth.currentUser
+    val userId = currentUser?.uid
+
+    var userData by remember { mutableStateOf<UserData?>(null) } // Estado para almacenar los datos del usuario
+
+    LaunchedEffect(userId) { // Ejecutar solo cuando userId cambie
+        if (userId != null) {
+            obtenerIDUsuario(
+                userId = userId,
+                onSuccess = { data ->
+                    userData = data
+                },
+                onFailure = { exception ->
+                    // Manejar el error
+                    Log.e("ProfileScreen", "Error al obtener datos del usuario", exception)
+                }
+            )
+        }
+    }
 
     Scaffold(
         containerColor = Color.White,  // Agregado para establecer fondo blanco
@@ -113,12 +156,12 @@ fun ProfileScreen(navController: NavController) {
                                 .weight(1f)
                         ) {
                             Text(
-                                text = "Sofía",
+                                text = userData?.nombre ?: "Cargando...", // Muestra el nombre y mientras carga los datos "Cargando..."
                                 fontFamily = SFProDisplayBold,
                                 fontWeight = FontWeight.Bold
                             )
                             Text(
-                                text = "sofia@gmail.com",
+                                text = userData?.correoElectronico ?: "Cargando...", // Muestra el correo y mientras carga los datos "Cargando..."
                                 fontFamily = SFProDisplayMedium,
                                 color = Color.Gray,
                                 fontSize = 14.sp
