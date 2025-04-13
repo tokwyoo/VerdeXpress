@@ -14,6 +14,7 @@ import androidx.compose.runtime.*
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.res.painterResource
@@ -23,6 +24,7 @@ import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.style.TextDecoration
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.compose.ui.zIndex
 import androidx.navigation.NavController
 import com.example.design.MainAppBar
 import com.example.donations.data.notificaciones.GetUserNotifications
@@ -265,72 +267,83 @@ fun NotificationItem(
 ) {
     val verde = Color(0xFF78B153)
 
-    Box(
+    // Usamos BoxWithConstraints para poder acceder al ancho máximo disponible
+    BoxWithConstraints(
         modifier = Modifier
             .fillMaxWidth()
             .padding(vertical = 4.dp)
-            .background(
-                color = Color.White,
-                shape = RoundedCornerShape(size = 8.dp)
-            )
-            .border(
-                width = 1.dp,
-                color = verde,
-                shape = RoundedCornerShape(size = 8.dp)
-            )
-            .clickable {
-                if (!notification.leido) {
-                    onMarkAsRead()
-                }
-            }
     ) {
+        // Box principal de la notificación con sombra y bordes
+        Box(
+            modifier = Modifier
+                .fillMaxWidth()
+                .shadow(
+                    elevation = 5.dp,
+                    shape = RoundedCornerShape(size = 8.dp)
+                )
+                .background(
+                    color = Color.White,
+                    shape = RoundedCornerShape(size = 8.dp)
+                )
+                .border(
+                    width = 1.dp,
+                    color = verde,
+                    shape = RoundedCornerShape(size = 8.dp)
+                )
+                .clickable {
+                    if (!notification.leido) {
+                        onMarkAsRead()
+                    }
+                }
+        ) {
+            // Contenido de la notificación
+            Column(
+                modifier = Modifier.padding(16.dp)
+            ) {
+                // Título de la notificación
+                Text(
+                    text = notification.titulo,
+                    style = TextStyle(
+                        fontSize = 14.sp,
+                        color = Color.Black
+                    ),
+                    fontFamily = FontFamily(Font(R.font.sf_pro_display_bold))
+                )
+                Spacer(modifier = Modifier.height(4.dp))
+
+                // Mensaje de la notificación
+                Text(
+                    text = notification.mensaje,
+                    style = TextStyle(
+                        fontSize = 12.sp,
+                        color = Color.Black
+                    ),
+                    fontFamily = FontFamily(Font(R.font.sf_pro_display_medium))
+                )
+
+                Spacer(modifier = Modifier.height(8.dp))
+
+                // Fecha formateada
+                val formattedDate = formatTimestamp(notification.fecha)
+                Text(
+                    text = formattedDate,
+                    style = TextStyle(
+                        fontSize = 12.sp,
+                        color = Color.Gray
+                    ),
+                    fontFamily = FontFamily(Font(R.font.sf_pro_display_medium))
+                )
+            }
+        }
+
         // Indicador verde de no leído
         if (!notification.leido) {
             Box(
                 modifier = Modifier
-                    .size(12.dp)
-                    .background(color = verde, shape = RoundedCornerShape(6.dp))
-                    .align(Alignment.CenterEnd)
-                    .padding(end = 12.dp)
-            )
-        }
-
-        // Contenido de la notificación
-        Column(
-            modifier = Modifier.padding(16.dp)
-        ) {
-            // Título de la notificación
-            Text(
-                text = notification.titulo,
-                style = TextStyle(
-                    fontSize = 14.sp,
-                    color = Color.Black
-                ),
-                fontFamily = FontFamily(Font(R.font.sf_pro_display_bold))
-            )
-            Spacer(modifier = Modifier.height(4.dp))
-
-            // Mensaje de la notificación
-            Text(
-                text = notification.mensaje,
-                style = TextStyle(
-                    fontSize = 12.sp,
-                    color = Color.Black
-                ),
-                fontFamily = FontFamily(Font(R.font.sf_pro_display_medium))
-            )
-
-            Spacer(modifier = Modifier.height(8.dp))
-
-            // Fecha formateada
-            val formattedDate = formatTimestamp(notification.fecha)
-            Text(
-                text = formattedDate,
-                style = TextStyle(
-                    fontSize = 12.sp,
-                    color = Color.Gray
-                ),
-                fontFamily = FontFamily(Font(R.font.sf_pro_display_medium))
+                    .size(18.dp)
+                    .offset(x = maxWidth - 10.dp, y = (-5).dp)
+                    .background(color = verde, shape = RoundedCornerShape(8.dp))
+                    .zIndex(1f)
             )
         }
     }
