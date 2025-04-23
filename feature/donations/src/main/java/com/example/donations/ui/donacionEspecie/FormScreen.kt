@@ -216,6 +216,11 @@ fun FormScreen(navController: NavController) {
                 try {
                     val imageUrls = imageUploadManager.uploadImages(selectedImageUris)
 
+                    // TODO: IMPLEMENTAR FLUJO DE GENERACIÓN DE COMPROBANTE
+                    // ---- INICIO FLUJO DE GENERACIÓN DE COMPROBANTE ----
+                    var urlComprobante = ""
+                    // ---- FIN FLUJO DE GENERACIÓN DE COMPROBANTE ----
+
                     saveDonationToFirestore(
                         name = name,
                         contactNumber = contactNumber,
@@ -226,7 +231,8 @@ fun FormScreen(navController: NavController) {
                         quantity = numeroValue,
                         condition = selectedCondition,
                         imageUrls = imageUrls,
-                        estimatedDonationDate = estimatedDonationDate
+                        estimatedDonationDate = estimatedDonationDate,
+                        urlComprobante = urlComprobante
                     )
 
                     withContext(Dispatchers.Main) {

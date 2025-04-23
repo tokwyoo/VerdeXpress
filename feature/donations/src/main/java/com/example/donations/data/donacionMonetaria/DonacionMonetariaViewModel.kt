@@ -139,6 +139,18 @@ class DonacionMonetariaViewModel : ViewModel() {
                 // Obtener los detalles del método de pago desde el backend
                 fetchPaymentMethodDetails(transactionId)
 
+                // TODO: IMPLEMENTAR FLUJO DE GENERACIÓN DE COMPROBANTE
+                // ---- INICIO FLUJO DE GENERACIÓN DE COMPROBANTE ----
+                // Mandar datos al endpoint
+                // Recuperar html
+                // Convertir html a pdf
+                // Subir pdf a Supabase Storage
+                // Obtener la URL del comprobante
+                var urlComprobante = ""
+
+
+                // ---- FIN FLUJO DE GENERACIÓN DE COMPROBANTE ----
+
                 // Guardar en Firestore solo cuando el pago es exitoso
                 saveDonationToFirestore(
                     nombre = nombre,
@@ -155,7 +167,8 @@ class DonacionMonetariaViewModel : ViewModel() {
                     cardBrand = cardBrand ?: "Tarjeta",
                     lastCardDigits = lastCardDigits ?: "****",
                     transactionId = transactionId ?: "N/A",
-                    transactionDate = transactionDate ?: now.toString()
+                    transactionDate = transactionDate ?: now.toString(),
+                    urlComprobante = urlComprobante
                 )
 
                 showSuccessMessage = true

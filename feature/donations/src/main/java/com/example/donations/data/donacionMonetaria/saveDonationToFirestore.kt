@@ -24,7 +24,8 @@ fun saveDonationToFirestore(
     cardBrand: String,
     lastCardDigits: String,
     transactionId: String,
-    transactionDate: String
+    transactionDate: String,
+    urlComprobante: String,
 ) {
     val db = Firebase.firestore
     val auth = FirebaseAuth.getInstance()
@@ -54,7 +55,8 @@ fun saveDonationToFirestore(
         "transaction_id" to transactionId,
         "transaction_date" to transactionDate,
         "registro_usuario" to auth.currentUser?.uid, // ID del usuario que realiza la donación
-        "created_at" to Timestamp(createdAt) // Timestamp ajustado a Hermosillo
+        "created_at" to Timestamp(createdAt), // Timestamp ajustado a Hermosillo
+        "url_comprobante" to urlComprobante // URL del comprobante de donación
     )
 
     // Guardar la donación en Firestore
