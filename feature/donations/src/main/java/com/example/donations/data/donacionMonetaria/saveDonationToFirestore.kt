@@ -91,4 +91,22 @@ fun saveDonationToFirestore(
             Log.e("Firestore", "Error al agregar la notificación: ${e.message}")
         }
 
+    // ----- INICIO FLUJO "NOTIFICACION PARA EL ADMINISTRADOR"
+    val notificationData2 = hashMapOf(
+        "titulo" to "Nueva donación monetaria",
+        "mensaje" to "El usuario $nombre ha hecho una donación monetaria dirigida al parque $parqueSeleccionado. Puedes revisarla en la sección de Donaciones.",
+        "fecha" to FieldValue.serverTimestamp(),
+        "leido_por" to emptyList<String>()
+    )
+
+    db.collection("notificaciones_admin")
+        .add(notificationData2)
+        .addOnSuccessListener {
+            Log.d("Firestore", "Notificación guardada correctamente con id: ${it.id}")
+        }
+        .addOnFailureListener { e ->
+            Log.e("Firestore", "Error al guardar notificación: ${e.message}")
+        }
+    // ----- FIN FLUJO "NOTIFICACION PARA EL ADMINISTRADOR"
+
 }

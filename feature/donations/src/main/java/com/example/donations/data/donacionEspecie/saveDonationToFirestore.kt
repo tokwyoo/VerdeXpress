@@ -5,6 +5,7 @@ import com.google.firebase.Timestamp
 import com.google.firebase.firestore.ktx.firestore
 import com.google.firebase.ktx.Firebase
 import com.google.firebase.auth.FirebaseAuth
+import com.google.firebase.firestore.FieldValue
 import java.util.Calendar
 import java.util.TimeZone
 
@@ -60,4 +61,22 @@ fun saveDonationToFirestore(
             // Error al guardar los datos
             Log.e("Firestore", "Error al guardar la donación: ${e.message}")
         }
+
+    // ----- INICIO FLUJO "NOTIFICACION PARA EL ADMINISTRADOR"
+    val notificationData = hashMapOf(
+        "titulo" to "Nueva solicitud de donación en especie",
+        "mensaje" to "El usuario $name ha enviado una solicitud para donar $resource al parque $parkToDonate. Puedes revisarla en la sección de Donaciones.",
+        "fecha" to FieldValue.serverTimestamp(),
+        "leido_por" to emptyList<String>()
+    )
+
+    db.collection("notificaciones_admin")
+        .add(notificationData)
+        .addOnSuccessListener {
+            Log.d("Firestore", "Notificación guardada correctamente con id: ${it.id}")
+        }
+        .addOnFailureListener { e ->
+            Log.e("Firestore", "Error al guardar notificación: ${e.message}")
+        }
+    // ----- FIN FLUJO "NOTIFICACION PARA EL ADMINISTRADOR"
 }
