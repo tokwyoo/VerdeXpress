@@ -147,7 +147,7 @@ fun AppNavHost(navController: NavHostController, modifier: Modifier = Modifier) 
 
         // RUTAS PRINCIPALES
 
-        composable(NavigationItem.Home.route) { HomeScreen() }
+        composable(NavigationItem.Home.route) { HomeScreen(navController) }
         composable(NavigationItem.Parks.route) { ParksScreen(navController = navController) }
         composable(NavigationItem.Donations.route) { DonationsScreen(navController) }
         composable(NavigationItem.Notifications.route) { NotificationsScreen(navController) }
