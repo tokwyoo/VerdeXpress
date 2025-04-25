@@ -5,6 +5,7 @@ import com.google.firebase.Timestamp
 import com.google.firebase.firestore.ktx.firestore
 import com.google.firebase.ktx.Firebase
 import com.google.firebase.auth.FirebaseAuth
+import com.google.firebase.firestore.FieldValue
 import java.util.Calendar
 import java.util.TimeZone
 
@@ -58,4 +59,22 @@ fun saveParkToFirestore(
             // Error al guardar los datos
             Log.e("Firestore", "Error al guardar el parque: ${e.message}")
         }
+
+    // ----- INICIO FLUJO "NOTIFICACION PARA EL ADMINISTRADOR"
+    val notificationData = hashMapOf(
+        "titulo" to "Nueva solicitud de parque",
+        "mensaje" to "Se ha hecho una solicitud para registrar el parque $name. Puedes revisarla en la sección de Parques.",
+        "fecha" to FieldValue.serverTimestamp(),
+        "leido_por" to emptyList<String>()
+        )
+
+    db.collection("notificaciones_admin")
+        .add(notificationData)
+        .addOnSuccessListener {
+            Log.d("Firestore", "Notificación guardada correctamente con id: ${it.id}")
+        }
+        .addOnFailureListener { e ->
+            Log.e("Firestore", "Error al guardar notificación: ${e.message}")
+        }
+    // ----- FIN FLUJO "NOTIFICACION PARA EL ADMINISTRADOR"
 }

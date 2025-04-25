@@ -68,6 +68,7 @@ fun DeleteAccountScreen(navController: NavController) {
     val scope = rememberCoroutineScope()
     var showDialog by remember { mutableStateOf(false) }
     var dialogMessage by remember { mutableStateOf("") }
+    var isDeletingAccount by remember { mutableStateOf(false) }
 
     suspend fun verifyUserPassword(password: String): Boolean {
         if (user == null) {
@@ -253,12 +254,14 @@ fun DeleteAccountScreen(navController: NavController) {
                             if (user != null && checked) {
                                 scope.launch {
                                     if (verifyUserPassword(currentPassword)) {
+                                        isDeletingAccount = true // Mostrar la pantalla de carga
                                         user.delete()
                                             .addOnCompleteListener { task ->
+                                                isDeletingAccount = false // Ocultar la pantalla de carga
                                                 if (task.isSuccessful) {
                                                     Log.d("DeleteAccount", "Cuenta eliminada correctamente.")
-                                                    navController.navigate("DeleteUser") {
-                                                        popUpTo("eliminarCuenta") { inclusive = true }
+                                                    navController.navigate("DeleteUserLoading") {
+                                                        popUpTo("DeleteUserLoading") { inclusive = true }
                                                     }
                                                 } else {
                                                     Log.e("DeleteAccount", "Error al eliminar la cuenta.", task.exception)
@@ -267,7 +270,6 @@ fun DeleteAccountScreen(navController: NavController) {
                                                 }
                                             }
                                     }
-
                                 }
                             } else if (!checked) {
                                 dialogMessage = "Debes aceptar los términos para eliminar tu cuenta."

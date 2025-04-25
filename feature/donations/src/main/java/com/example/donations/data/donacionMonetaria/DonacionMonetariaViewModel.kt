@@ -142,9 +142,6 @@ class DonacionMonetariaViewModel : ViewModel() {
                 // TODO: IMPLEMENTAR FLUJO DE GENERACIÓN DE COMPROBANTE
                 // ---- INICIO FLUJO DE GENERACIÓN DE COMPROBANTE ----
                 // Mandar datos al endpoint
-                // Recuperar html
-                // Convertir html a pdf
-                // Subir pdf a Supabase Storage
                 // Obtener la URL del comprobante
                 var urlComprobante = ""
 
