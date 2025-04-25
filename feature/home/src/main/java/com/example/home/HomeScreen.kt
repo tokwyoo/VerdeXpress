@@ -1,5 +1,6 @@
 package com.example.home
 
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -10,7 +11,6 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.KeyboardArrowRight
@@ -33,8 +33,8 @@ import com.example.design.MainAppBar
 import com.example.design.SFProDisplayBold
 import com.example.design.SFProDisplayMedium
 
-// Definir el color verde como una constante a nivel de archivo para que esté disponible en todas las funciones
 private val greenColor = Color(0xFF78B153)
+private val lightGrayColor = Color(0xFFF5F6F7)
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -51,33 +51,31 @@ fun HomeScreen(navController: NavController) {
             Column(
                 modifier = Modifier
                     .fillMaxSize()
-                    .padding(horizontal = 10.dp)
+                    .padding(horizontal = 16.dp)
             ) {
                 Text(
                     text = "Hola, Usuario",
                     fontFamily = SFProDisplayBold,
                     fontWeight = FontWeight.Bold,
-                    fontSize = 20.sp,
-                    modifier = Modifier.padding(vertical = 10.dp)
+                    fontSize = 25.sp,
+                    modifier = Modifier.padding(horizontal = 8.dp, vertical = 26.dp)
                 )
 
-                // Contenido principal según la imagen del prototipo
                 Row(
                     modifier = Modifier.fillMaxWidth(),
                     horizontalArrangement = Arrangement.spacedBy(10.dp)
                 ) {
-                    // Columna izquierda: Resumen de actividad
                     Column(
                         modifier = Modifier.weight(1f),
                         verticalArrangement = Arrangement.spacedBy(10.dp)
                     ) {
                         // Resumen de actividad
                         Card(
-                            modifier = Modifier.fillMaxWidth().height(428.dp),
+                            modifier = Modifier.fillMaxWidth().height(445.dp),
                             shape = RoundedCornerShape(8.dp),
-                            colors = CardDefaults.cardColors(containerColor = Color.White),
+                            colors = CardDefaults.cardColors(containerColor = lightGrayColor),
                             elevation = CardDefaults.cardElevation(defaultElevation = 0.dp),
-                            border = androidx.compose.foundation.BorderStroke(1.dp, greenColor) // Cambiado a verde
+                            border = androidx.compose.foundation.BorderStroke(1.dp, greenColor)
                         ) {
                             Column(
                                 modifier = Modifier.padding(10.dp)
@@ -116,7 +114,6 @@ fun HomeScreen(navController: NavController) {
                         }
                     }
 
-                    // Columna derecha: Parques apoyados, Últimas donaciones y Donaciones
                     Column(
                         modifier = Modifier.weight(1f),
                         verticalArrangement = Arrangement.spacedBy(10.dp)
@@ -149,12 +146,13 @@ fun HomeScreen(navController: NavController) {
                             }
                         }
 
-                        // Últimas donaciones
+                        // Últimas donaciones - Ahora clickable para navegar a la sección de donaciones
                         Card(
+                            onClick = { navController.navigate("Donaciones") },
                             shape = RoundedCornerShape(8.dp),
-                            colors = CardDefaults.cardColors(containerColor = Color.White),
+                            colors = CardDefaults.cardColors(containerColor = lightGrayColor),
                             elevation = CardDefaults.cardElevation(defaultElevation = 0.dp),
-                            border = androidx.compose.foundation.BorderStroke(1.dp, greenColor) // Cambiado a verde
+                            border = androidx.compose.foundation.BorderStroke(1.dp, greenColor)
                         ) {
                             Column(
                                 modifier = Modifier.padding(10.dp)
@@ -165,7 +163,7 @@ fun HomeScreen(navController: NavController) {
                                     horizontalArrangement = Arrangement.SpaceBetween
                                 ) {
                                     Text(
-                                        text = "Últimas donaciones",
+                                        text = "Ultimas donaciones",
                                         fontFamily = SFProDisplayBold,
                                         fontWeight = FontWeight.Bold,
                                         fontSize = 14.sp
@@ -206,10 +204,10 @@ fun HomeScreen(navController: NavController) {
                             }
                         }
 
-                        // Donaciones (botones del prototipo)
+                        // Botones para las donaciones
                         Card(
                             shape = RoundedCornerShape(8.dp),
-                            colors = CardDefaults.cardColors(containerColor = Color.White),
+                            colors = CardDefaults.cardColors(containerColor = lightGrayColor),
                             elevation = CardDefaults.cardElevation(defaultElevation = 0.dp),
                             border = androidx.compose.foundation.BorderStroke(1.dp, greenColor)
                         ) {
@@ -230,8 +228,9 @@ fun HomeScreen(navController: NavController) {
                                     modifier = Modifier.fillMaxWidth(),
                                     horizontalArrangement = Arrangement.spacedBy(8.dp)
                                 ) {
-                                    // Botón Monetaria
+                                    // Botón Monetaria - Ahora navega a donacionMonetaria
                                     Card(
+                                        onClick = { navController.navigate("donacionMonetaria") },
                                         modifier = Modifier.weight(1f).height(70.dp),
                                         shape = RoundedCornerShape(6.dp),
                                         colors = CardDefaults.cardColors(containerColor = greenColor),
@@ -263,8 +262,9 @@ fun HomeScreen(navController: NavController) {
                                         }
                                     }
 
-                                    // Botón En especie
+                                    // Botón en especie - Ahora navega a donacionEspecie
                                     Card(
+                                        onClick = { navController.navigate("donacionEspecie") },
                                         modifier = Modifier.weight(1f).height(70.dp),
                                         shape = RoundedCornerShape(6.dp),
                                         colors = CardDefaults.cardColors(containerColor = greenColor),
@@ -315,25 +315,23 @@ fun ParkItem(name: String, status: String) {
 
     Card(
         shape = RoundedCornerShape(6.dp),
-        colors = CardDefaults.cardColors(containerColor = Color.White),
+        colors = CardDefaults.cardColors(containerColor = lightGrayColor),
         elevation = CardDefaults.cardElevation(defaultElevation = 0.dp),
-        border = androidx.compose.foundation.BorderStroke(1.dp, Color(0xFFE0E0E0))
+        border = androidx.compose.foundation.BorderStroke(1.dp, greenColor)
     ) {
         Column(
             modifier = Modifier
                 .fillMaxWidth()
-                .padding(horizontal = 12.dp, vertical = 8.dp), // MODIFICACIÓN: Añadido padding horizontal y vertical
-            horizontalAlignment = Alignment.Start // Alineado a la izquierda
+                .padding(horizontal = 12.dp, vertical = 8.dp),
+            horizontalAlignment = Alignment.Start
         ) {
             Text(
                 text = name,
                 fontFamily = SFProDisplayBold,
                 fontSize = 13.sp,
                 fontWeight = FontWeight.Bold,
-                modifier = Modifier.padding(bottom = 2.dp) // MODIFICACIÓN: Espacio inferior para el nombre
+                modifier = Modifier.padding(bottom = 2.dp)
             )
-
-            //Spacer(modifier = Modifier.height(2.dp)) // Eliminado el Spacer
 
             Row(
                 verticalAlignment = Alignment.CenterVertically
@@ -375,8 +373,8 @@ fun DonationItemNew(name: String, date: String, amount: String) {
         Column(
             modifier = Modifier
                 .fillMaxWidth()
-                .padding(horizontal = 12.dp, vertical = 8.dp), // MODIFICACIÓN: Añadido padding horizontal y vertical
-            horizontalAlignment = Alignment.Start // Alineado a la izquierda
+                .padding(horizontal = 12.dp, vertical = 8.dp),
+            horizontalAlignment = Alignment.Start
         ) {
             Text(
                 text = name,
@@ -384,18 +382,18 @@ fun DonationItemNew(name: String, date: String, amount: String) {
                 fontSize = 13.sp,
                 color = Color.White,
                 fontWeight = FontWeight.Bold,
-                modifier = Modifier.padding(bottom = 2.dp) // MODIFICACIÓN: Espacio inferior para el nombre
+                modifier = Modifier.padding(bottom = 2.dp)
             )
 
             Row(
-                verticalAlignment = Alignment.CenterVertically // MODIFICACIÓN: Centrar verticalmente
+                verticalAlignment = Alignment.CenterVertically
             ) {
                 Text(
                     text = date,
                     fontFamily = SFProDisplayMedium,
                     fontSize = 11.sp,
                     color = Color.White,
-                    modifier = Modifier.padding(4.dp) // MODIFICACIÓN: Espacio a la derecha de la fecha
+                    modifier = Modifier.padding(4.dp)
                 )
 
                 Text(

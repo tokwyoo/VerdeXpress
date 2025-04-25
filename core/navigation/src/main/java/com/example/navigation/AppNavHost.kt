@@ -346,8 +346,12 @@ fun AppNavHost(navController: NavHostController, modifier: Modifier = Modifier) 
         // ----------------------------------------------------------------
 
         // RUTAS DEL MÓDULO "HOME"
+        composable(NavigationItem.Home.route) { HomeScreen(navController) }
+        composable(NavigationItem.Parks.route) { ParksScreen(navController = navController) } // Pasar navController
+        composable(NavigationItem.Donations.route) { DonationsScreen(navController) } // Pasar navController
+        composable(NavigationItem.Notifications.route) { NotificationsScreen(navController) } // Pasar navController
+        composable(NavigationItem.Profile.route) { ProfileScreen(navController) } // Pasar navController
 
-        // ...
 
         // ----------------------------------------------------------------
 
