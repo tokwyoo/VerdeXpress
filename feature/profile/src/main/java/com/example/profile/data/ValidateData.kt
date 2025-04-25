@@ -1,12 +1,10 @@
 package com.example.profile.data
 
 import android.util.Log
-import com.google.firebase.Firebase
 import com.google.firebase.auth.EmailAuthProvider
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.auth.FirebaseAuthException
 import com.google.firebase.firestore.FirebaseFirestore
-import com.google.firebase.firestore.firestore
 import kotlinx.coroutines.tasks.await
 
 suspend fun actualizarCorreoElectronicoConReautenticacion(nuevoCorreo: String, contrasena: String, onSuccess: () -> Unit, onFailure: (Exception) -> Unit) {
@@ -47,43 +45,6 @@ suspend fun actualizarCorreoElectronicoConReautenticacion(nuevoCorreo: String, c
         onFailure(e)
     }
 }
-
-fun verificarYActualizarCorreo(
-    onSuccess: () -> Unit,
-    onNotVerified: () -> Unit,
-    onFailure: (Exception) -> Unit
-) {
-    val user = FirebaseAuth.getInstance().currentUser
-
-    user?.reload()?.addOnCompleteListener { task ->
-        if (task.isSuccessful) {
-            if (user.isEmailVerified) {
-                val db = Firebase.firestore
-                val uid = user.uid
-                val nuevoCorreo = user.email
-
-                val userRef = db.collection("usuarios").document(uid)
-                userRef.update("correoElectronico", nuevoCorreo)
-                    .addOnSuccessListener {
-                        Log.d("Correo", "Correo actualizado en Firestore")
-                        onSuccess()
-                    }
-                    .addOnFailureListener { e ->
-                        Log.w("Correo", "Error al actualizar en Firestore", e)
-                        onFailure(e)
-                    }
-            } else {
-                Log.d("Correo", "El correo aún no ha sido verificado.")
-                onNotVerified()
-            }
-        } else {
-            Log.w("Correo", "Error al hacer reload del usuario", task.exception)
-            onFailure(task.exception ?: Exception("Error desconocido al hacer reload del usuario."))
-        }
-    }
-}
-
-
 
 
 fun actualizarNombreApellidoUsuario(userId: String, nuevoNombre: String? = null, nuevoApellido: String? = null, onSuccess: () -> Unit, onFailure: (Exception) -> Unit) {

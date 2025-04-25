@@ -46,21 +46,20 @@ import com.example.design.SFProDisplayMedium
 import com.example.profile.data.UserData
 import com.example.profile.data.obtenerIDUsuario
 import com.google.firebase.auth.FirebaseAuth
+import com.google.firebase.auth.FirebaseUser
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun PersonalDataScreen(navController: NavController) {
-
     val auth = FirebaseAuth.getInstance()
-    val currentUser = auth.currentUser
-    val userId = currentUser?.uid
+    val currentUser: FirebaseUser? = auth.currentUser // Obtén el FirebaseUser
 
     var userData by remember { mutableStateOf<UserData?>(null) } // Estado para almacenar los datos del usuario
 
-    LaunchedEffect(userId) { // Ejecutar solo cuando userId cambie
-        if (userId != null) {
+    LaunchedEffect(currentUser?.uid) { // Ejecutar solo cuando el ID del usuario cambie
+        if (currentUser?.uid != null) {
             obtenerIDUsuario(
-                userId = userId,
+                userId = currentUser.uid,
                 onSuccess = { data ->
                     userData = data
                 },
@@ -146,7 +145,7 @@ fun PersonalDataScreen(navController: NavController) {
                 PersonalInfoItem(
                     icon = Icons.Default.Email,
                     title = "E-mail",
-                    value = userData?.correoElectronico ?: "Cargando...",
+                    value = currentUser?.email ?: "Cargando...", // Muestra el correo de Firebase Auth
                     onEdit = {
                         navController.navigate("editEmail")
                     }

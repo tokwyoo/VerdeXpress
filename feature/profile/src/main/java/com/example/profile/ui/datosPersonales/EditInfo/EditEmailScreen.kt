@@ -30,7 +30,6 @@ import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -49,10 +48,9 @@ import androidx.navigation.NavController
 import com.example.design.MainAppBar
 import com.example.design.SFProDisplayBold
 import com.example.design.SFProDisplayMedium
-import com.example.profile.data.UserData
 import com.example.profile.data.actualizarCorreoElectronicoConReautenticacion
-import com.example.profile.data.obtenerIDUsuario
 import com.google.firebase.auth.FirebaseAuth
+import com.google.firebase.auth.FirebaseUser
 import kotlinx.coroutines.launch
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -61,32 +59,12 @@ fun EditEmailScreen(navController: NavController) {
     var newEmail by remember { mutableStateOf("") }
     var currentPassword by remember { mutableStateOf("") }
     val auth = FirebaseAuth.getInstance()
-    val currentUser = auth.currentUser
-    val userId = currentUser?.uid
-    var userData by remember { mutableStateOf<UserData?>(null) }
+    val currentUser: FirebaseUser? = auth.currentUser // Obtén el FirebaseUser
     val coroutineScope = rememberCoroutineScope()
     var currentPasswordVisible by remember { mutableStateOf(false) }
     var updateEmailSuccess by remember { mutableStateOf(false) }
     var updateEmailError by remember { mutableStateOf<String?>(null) }
-    var puedeConfirmar by remember { mutableStateOf(false) }
-    var puedeVerificar by remember { mutableStateOf(true) }
-    var mostrarMensaje by remember { mutableStateOf(false) }
 
-
-    LaunchedEffect(userId) {
-        if (userId != null) {
-            obtenerIDUsuario(
-                userId = userId,
-                onSuccess = { data ->
-                    userData = data
-                    newEmail = data?.correoElectronico ?: ""
-                },
-                onFailure = { exception ->
-                    Log.e("ProfileScreen", "Error al obtener datos del usuario", exception)
-                }
-            )
-        }
-    }
 
     Scaffold(
         containerColor = Color.White,
@@ -143,7 +121,7 @@ fun EditEmailScreen(navController: NavController) {
                 )
 
                 Text(
-                    text = userData?.correoElectronico ?: "Cargando...",
+                    text = currentUser?.email ?: "Cargando...", // Muestra el correo de Firebase Auth
                     modifier = Modifier.padding(bottom = 32.dp),
                     fontFamily = SFProDisplayMedium,
                     fontSize = 15.sp
@@ -232,8 +210,6 @@ fun EditEmailScreen(navController: NavController) {
                     }
                 )
 
-
-
                 Spacer(modifier = Modifier.height(44.dp))
 
                 Button(
@@ -284,21 +260,36 @@ fun EditEmailScreen(navController: NavController) {
                 // Se muestra un mensaje de éxito (se logró mandar el correo de verificación)
                 if (updateEmailSuccess) {
                     AlertDialog(
-                        onDismissRequest = { updateEmailSuccess = false },
+                        onDismissRequest = { updateEmailSuccess = false
+                            val auth = FirebaseAuth.getInstance()
+                            auth.signOut()
+                            navController.navigate("signIn") {
+                                popUpTo(navController.graph.startDestinationId) { inclusive = true }
+                                launchSingleTop = true
+                                restoreState = false
+                            }
+                        },
                         title = { Text(
                             text = "Éxito",
                             fontFamily = SFProDisplayBold,
                             fontSize = 18.sp
-                            ) },
+                        ) },
                         text = { Text(
                             text = "Se ha enviado un correo de verificación a: $newEmail. " +
                                     "Por favor, revisa tu bandeja de entrada y haz clic en el enlace para confirmar " +
-                                    "tu nuevo correo electrónico.",
+                                    "tu nuevo correo electrónico. Una vez confirmado, se cerrará tu sesión y deberás iniciar sesión nuevamente con tu nuevo correo.",
                             fontFamily = SFProDisplayBold,
                             fontSize = 16.sp) },
                         confirmButton = {
                             TextButton(onClick = {
                                 updateEmailSuccess = false
+                                val auth = FirebaseAuth.getInstance()
+                                auth.signOut()
+                                navController.navigate("signIn") {
+                                    popUpTo(navController.graph.startDestinationId) { inclusive = true }
+                                    launchSingleTop = true
+                                    restoreState = false
+                                }
                             },
                                 colors = ButtonDefaults.buttonColors(
                                     containerColor = Color(0xFF78B153)
@@ -333,4 +324,4 @@ fun EditEmailScreen(navController: NavController) {
             }
         }
     }
-    }
+}
