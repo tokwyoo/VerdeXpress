@@ -252,10 +252,21 @@ fun FormScreen(navController: NavController) {
 
     Box {
         Column {
-            SecondaryAppBar(showIcon = true, onIconClick = {
-                navController.popBackStack("Donaciones", inclusive = false)
-                navController.navigate("Donaciones")
-            })
+            SecondaryAppBar(
+                showIcon = true,
+                onIconClick = {
+                    if (navController.previousBackStackEntry?.destination?.route == "Donaciones") {
+                        // Cuando venimos de DonationsScreen regresa a inicio de donaciones
+                        navController.navigate("Donaciones") {
+                            popUpTo("Donaciones") { inclusive = true }
+                            launchSingleTop = true
+                        }
+                    } else {
+                        // Cuando venimos directamente desde HomeScreen al hacer click en el icono regresa a HomeScreen
+                        navController.popBackStack()
+                    }
+                }
+            )
             Column(
                 modifier = Modifier
                     .fillMaxSize()

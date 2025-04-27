@@ -1,6 +1,5 @@
 package com.example.home
 
-import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -11,17 +10,25 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.KeyboardArrowRight
 import androidx.compose.material.icons.filled.LocationOn
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
+import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
@@ -32,6 +39,14 @@ import androidx.navigation.NavController
 import com.example.design.MainAppBar
 import com.example.design.SFProDisplayBold
 import com.example.design.SFProDisplayMedium
+import com.example.donations.data.inicio.GetUserDonations
+import com.example.parks.data.ParkDataA
+import com.example.parks.data.getParkDetails
+import com.example.parks.data.rememberUserFullName
+import com.google.firebase.auth.FirebaseAuth
+import kotlinx.coroutines.suspendCancellableCoroutine
+import kotlin.coroutines.resume
+import kotlin.coroutines.resumeWithException
 
 private val greenColor = Color(0xFF78B153)
 private val lightGrayColor = Color(0xFFF5F6F7)
@@ -39,6 +54,75 @@ private val lightGrayColor = Color(0xFFF5F6F7)
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun HomeScreen(navController: NavController) {
+
+    val auth = FirebaseAuth.getInstance()
+    val currentUser = auth.currentUser
+    val userId = currentUser?.uid ?: ""
+    val userName = rememberUserFullName(userId)
+    val scrollState = rememberScrollState()
+
+    // Estados para las donaciones
+    var donations by remember { mutableStateOf<List<GetUserDonations.UserDonation>>(emptyList()) }
+    var isLoadingDonations by remember { mutableStateOf(true) }
+    var isLoading by remember { mutableStateOf(true) }
+
+    // Estados para los parques apoyados
+    var supportedParks by remember { mutableStateOf<List<ParkDataA>>(emptyList()) }
+    var isLoadingParks by remember { mutableStateOf(true) }
+    var errorMessage by remember { mutableStateOf<String?>(null) }
+    var supportedParksCount by remember { mutableStateOf(0) }
+
+    // Cargar las donaciones al iniciar
+    LaunchedEffect(userId) {
+        if (userId.isNotEmpty()) {
+            // Cargar donaciones
+            isLoadingDonations = true
+            try {
+                val userDonations = suspendCancellableCoroutine<List<GetUserDonations.UserDonation>> { continuation ->
+                    GetUserDonations().getUserDonations(
+                        onSuccess = { result -> continuation.resume(result) },
+                        onFailure = { continuation.resumeWithException(Exception("Error al cargar donaciones")) }
+                    )
+                }
+
+                donations = userDonations.take(3)
+                isLoadingDonations = false
+
+                // Obtener nombres únicos de parques de las donaciones
+                val uniqueParkNames = userDonations.map { it.parkName }.distinct()
+                supportedParksCount = uniqueParkNames.size
+
+                // Cargar detalles de los parques
+                isLoadingParks = true
+                val parks = mutableListOf<ParkDataA>()
+
+                // Cargar los parques secuencialmente
+                for (parkName in uniqueParkNames.take(10)) {
+                    try {
+                        val parkData = suspendCancellableCoroutine<ParkDataA> { continuation ->
+                            getParkDetails(
+                                parkName = parkName,
+                                onSuccess = { data -> continuation.resume(data) },
+                                onFailure = { error -> continuation.resumeWithException(Exception(error.toString())) }
+                            )
+                        }
+                        parks.add(parkData)
+                    } catch (e: Exception) {
+                        // Ignoramos errores individuales de parques
+                    }
+                }
+
+                supportedParks = parks
+            } catch (e: Exception) {
+                errorMessage = "Error: ${e.message}"
+            } finally {
+                isLoadingDonations = false
+                isLoadingParks = false
+                isLoading = false
+            }
+        }
+    }
+
     Scaffold(
         containerColor = Color.White,
         topBar = { MainAppBar() },
@@ -47,6 +131,7 @@ fun HomeScreen(navController: NavController) {
             modifier = Modifier
                 .fillMaxSize()
                 .padding(paddingValues)
+                .verticalScroll(scrollState)
         ) {
             Column(
                 modifier = Modifier
@@ -54,7 +139,7 @@ fun HomeScreen(navController: NavController) {
                     .padding(horizontal = 16.dp)
             ) {
                 Text(
-                    text = "Hola, Usuario",
+                    text = "Hola, $userName",
                     fontFamily = SFProDisplayBold,
                     fontWeight = FontWeight.Bold,
                     fontSize = 25.sp,
@@ -69,7 +154,7 @@ fun HomeScreen(navController: NavController) {
                         modifier = Modifier.weight(1f),
                         verticalArrangement = Arrangement.spacedBy(10.dp)
                     ) {
-                        // Resumen de actividad
+                        // Resumen de actividad - Muestra una lista de parques con la situacion actual de los parques que ha apoyado el usuario
                         Card(
                             modifier = Modifier.fillMaxWidth().height(445.dp),
                             shape = RoundedCornerShape(8.dp),
@@ -78,7 +163,7 @@ fun HomeScreen(navController: NavController) {
                             border = androidx.compose.foundation.BorderStroke(1.dp, greenColor)
                         ) {
                             Column(
-                                modifier = Modifier.padding(10.dp)
+                                modifier = Modifier.padding(10.dp).verticalScroll(scrollState)
                             ) {
                                 Text(
                                     text = "Resumen de actividad",
@@ -97,19 +182,30 @@ fun HomeScreen(navController: NavController) {
                                 Spacer(modifier = Modifier.height(5.dp))
 
                                 // Lista de parques
-                                ParkItem(name = "Parque Pick Me", status = "desarrollo")
-                                Spacer(modifier = Modifier.height(4.dp))
-
-                                ParkItem(name = "Parque 'Nombre'", status = "recibiendo donaciones")
-                                Spacer(modifier = Modifier.height(4.dp))
-
-                                ParkItem(name = "Parque 'Nombre'", status = "financiación completada")
-                                Spacer(modifier = Modifier.height(4.dp))
-
-                                ParkItem(name = "Parque 'Nombre'", status = "financiación completada")
-                                Spacer(modifier = Modifier.height(4.dp))
-
-                                ParkItem(name = "Parque 'Nombre'", status = "financiación completada")
+                                if (isLoadingParks){
+                                    Box(
+                                        modifier = Modifier.fillMaxWidth(),
+                                        contentAlignment = Alignment.Center
+                                    ){
+                                        CircularProgressIndicator(
+                                            modifier = Modifier.size(20.dp),
+                                            color = greenColor,
+                                            strokeWidth = 2.dp
+                                        )
+                                    }
+                                } else if (supportedParks.isEmpty()) {
+                                    Text(
+                                        text = "No hay parques apoyados",
+                                        fontFamily = SFProDisplayMedium,
+                                        fontSize = 12.sp,
+                                        color = Color.Gray
+                                    )
+                                } else {
+                                    supportedParks.forEach{ park ->
+                                        ParkItem(name = park.nombre, status = park.situacion)
+                                        Spacer(modifier = Modifier.height(4.dp))
+                                    }
+                                }
                             }
                         }
                     }
@@ -118,7 +214,7 @@ fun HomeScreen(navController: NavController) {
                         modifier = Modifier.weight(1f),
                         verticalArrangement = Arrangement.spacedBy(10.dp)
                     ) {
-                        // Parques apoyados
+                        // Parques apoyados - Muestra un conteo de la cantidad de parques que ha apoyado el usuario
                         Card(
                             shape = RoundedCornerShape(8.dp),
                             colors = CardDefaults.cardColors(containerColor = greenColor)
@@ -136,17 +232,26 @@ fun HomeScreen(navController: NavController) {
                                     fontSize = 12.sp
                                 )
 
-                                Text(
-                                    text = "03",
-                                    fontFamily = SFProDisplayBold,
-                                    color = Color.White,
-                                    fontSize = 48.sp,
-                                    fontWeight = FontWeight.Bold
-                                )
+                                if (isLoadingDonations) {
+                                    CircularProgressIndicator(
+                                        modifier = Modifier.size(20.dp),
+                                        color = Color.White,
+                                        strokeWidth = 2.dp
+                                    )
+                                } else {
+                                    Text(
+                                        text = supportedParksCount.toString().padStart(2, '0'),
+                                        fontFamily = SFProDisplayBold,
+                                        color = Color.White,
+                                        fontSize = 48.sp,
+                                        fontWeight = FontWeight.Bold
+                                    )
+                                }
                             }
                         }
 
                         // Últimas donaciones - Ahora clickable para navegar a la sección de donaciones
+                        // se muestran las ultimas tres donaciones que ha hecho el usuario
                         Card(
                             onClick = { navController.navigate("Donaciones") },
                             shape = RoundedCornerShape(8.dp),
@@ -179,28 +284,38 @@ fun HomeScreen(navController: NavController) {
 
                                 Spacer(modifier = Modifier.height(6.dp))
 
-                                // Donaciones
-                                DonationItemNew(
-                                    name = "Parque Las Minitas",
-                                    date = "09 Marzo 2025",
-                                    amount = "Monto"
-                                )
-
-                                Spacer(modifier = Modifier.height(4.dp))
-
-                                DonationItemNew(
-                                    name = "Parque 'Nombre'",
-                                    date = "03 Marzo 2025",
-                                    amount = "Nombre del recurso"
-                                )
-
-                                Spacer(modifier = Modifier.height(4.dp))
-
-                                DonationItemNew(
-                                    name = "Parque 'Nombre'",
-                                    date = "27 Febrero 2025",
-                                    amount = "Monto"
-                                )
+                                if(isLoading){
+                                    Box(
+                                        modifier = Modifier.fillMaxWidth(),
+                                        contentAlignment = Alignment.Center
+                                    ){
+                                        CircularProgressIndicator(
+                                            modifier = Modifier.size(20.dp),
+                                            color = greenColor,
+                                            strokeWidth = 2.dp
+                                        )
+                                    }
+                                } else if (donations.isEmpty())
+                                {
+                                 Text(
+                                     text = "No hay donaciones",
+                                     fontFamily = SFProDisplayMedium,
+                                     fontSize = 12.sp,
+                                     color = Color.Gray
+                                 )
+                                } else {
+                                    donations.forEach { donation ->
+                                        DonationItemCompact(
+                                            name = donation.parkName,
+                                            date = donation.date,
+                                            amount = when (donation.type){
+                                                "monetaria" -> "Monto: ${donation.details.substringAfter("Monto ")}"
+                                                else -> donation.details
+                                            }
+                                        )
+                                        Spacer(modifier = Modifier.height(4.dp))
+                                    }
+                                }
                             }
                         }
 
@@ -264,7 +379,11 @@ fun HomeScreen(navController: NavController) {
 
                                     // Botón en especie - Ahora navega a donacionEspecie
                                     Card(
-                                        onClick = { navController.navigate("donacionEspecie") },
+                                        onClick = { navController.navigate("donacionEspecie") {
+                                            launchSingleTop = true
+                                            popUpTo("Inicio") { saveState = true }
+                                        }
+                                                  },
                                         modifier = Modifier.weight(1f).height(70.dp),
                                         shape = RoundedCornerShape(6.dp),
                                         colors = CardDefaults.cardColors(containerColor = greenColor),
@@ -304,6 +423,7 @@ fun HomeScreen(navController: NavController) {
     }
 }
 
+// Funcion para desplegar cada parque en la seccion de Resumen de actividad
 @Composable
 fun ParkItem(name: String, status: String) {
     val statusColor = when (status.lowercase()) {
@@ -333,16 +453,19 @@ fun ParkItem(name: String, status: String) {
                 modifier = Modifier.padding(bottom = 2.dp)
             )
 
-            Row(
-                verticalAlignment = Alignment.CenterVertically
+            // Utilizamos un Column para forzar el salto de línea completo
+            Column(
+                modifier = Modifier.fillMaxWidth()
             ) {
+                // Primera línea: "Se encuentra en"
                 Text(
-                    text = "Se encuentra en ",
+                    text = "Se encuentra en",
                     fontFamily = SFProDisplayMedium,
                     fontSize = 11.sp,
                     color = Color.DarkGray
                 )
 
+                // Segunda línea: Estado con color
                 Text(
                     text = status,
                     fontFamily = SFProDisplayBold,
@@ -350,22 +473,14 @@ fun ParkItem(name: String, status: String) {
                     color = statusColor,
                     fontWeight = FontWeight.Bold
                 )
-
-                if (status == "financiación completada") {
-                    Text(
-                        text = ".",
-                        fontFamily = SFProDisplayMedium,
-                        fontSize = 11.sp,
-                        color = Color.DarkGray
-                    )
-                }
             }
         }
     }
 }
 
+// Funcion para mostrar cada donacion en la seccion de ultimas donaciones
 @Composable
-fun DonationItemNew(name: String, date: String, amount: String) {
+fun DonationItemCompact(name: String, date: String, amount: String) {
     Card(
         shape = RoundedCornerShape(6.dp),
         colors = CardDefaults.cardColors(containerColor = greenColor)
@@ -379,27 +494,27 @@ fun DonationItemNew(name: String, date: String, amount: String) {
             Text(
                 text = name,
                 fontFamily = SFProDisplayBold,
-                fontSize = 13.sp,
+                fontSize = 11.sp,
                 color = Color.White,
                 fontWeight = FontWeight.Bold,
                 modifier = Modifier.padding(bottom = 2.dp)
             )
 
+            // Utilizamos un row para que la fecha y el producto o cantidad donada se vean en la misma linea
             Row(
                 verticalAlignment = Alignment.CenterVertically
             ) {
                 Text(
-                    text = date,
+                    text = "$date |",
                     fontFamily = SFProDisplayMedium,
-                    fontSize = 11.sp,
+                    fontSize = 9.sp,
                     color = Color.White,
                     modifier = Modifier.padding(4.dp)
                 )
-
                 Text(
-                    text = "• $amount",
+                    text = "$amount",
                     fontFamily = SFProDisplayMedium,
-                    fontSize = 11.sp,
+                    fontSize = 9.sp,
                     color = Color.White
                 )
             }

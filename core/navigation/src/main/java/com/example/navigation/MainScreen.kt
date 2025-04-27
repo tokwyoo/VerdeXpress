@@ -58,7 +58,6 @@ fun MainScreen() {
                 "datosPersonales" -> true
                 "datosCuenta" -> true
                 "eliminarCuenta" -> true
-                "parkDetails" -> true
                 "parkDetails/{parkName}?latitud={latitud}&longitud={longitud}" -> true
                 else -> false
             }
