@@ -36,6 +36,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
+import androidx.navigation.NavGraph.Companion.findStartDestination
 import com.example.design.MainAppBar
 import com.example.design.SFProDisplayBold
 import com.example.design.SFProDisplayMedium
@@ -253,7 +254,19 @@ fun HomeScreen(navController: NavController) {
                         // Últimas donaciones - Ahora clickable para navegar a la sección de donaciones
                         // se muestran las ultimas tres donaciones que ha hecho el usuario
                         Card(
-                            onClick = { navController.navigate("Donaciones") },
+                            onClick = {
+                                println("HOME SCREEN - Navegando a Donaciones desde pantalla de inicio")
+                                navController.navigate("Donaciones") {
+                                    // Esto asegura que solo haya una instancia de Donaciones
+                                    launchSingleTop = true
+                                    // Restaura el estado si ya existe
+                                    restoreState = true
+                                    // PopUpTo el inicio para limpiar el stack
+                                    popUpTo(navController.graph.findStartDestination().id) {
+                                        saveState = true
+                                    }
+                                }
+                            },
                             shape = RoundedCornerShape(8.dp),
                             colors = CardDefaults.cardColors(containerColor = lightGrayColor),
                             elevation = CardDefaults.cardElevation(defaultElevation = 0.dp),

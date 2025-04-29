@@ -39,6 +39,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.zIndex
 import androidx.navigation.NavController
+import androidx.navigation.NavGraph.Companion.findStartDestination
 import androidx.navigation.compose.currentBackStackEntryAsState
 import com.example.design.R
 
@@ -99,9 +100,10 @@ fun BottomNavigationBar(
                                 indication = null
                             ) {
                                 if (currentRoute != item.route) {
+                                    println("BOTTOM NAV - Intentando navegar a: ${item.route} desde: $currentRoute")
                                     navController.navigate(item.route) {
                                         launchSingleTop = true
-                                        popUpTo(navController.graph.startDestinationId) {
+                                        popUpTo(navController.graph.findStartDestination().id) {
                                             saveState = true
                                         }
                                         restoreState = true
