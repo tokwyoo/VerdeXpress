@@ -40,7 +40,6 @@ import com.example.donations.ui.donacionEspecie.FormScreen as EspecieFormScreen
 import com.example.donations.ui.donacionMonetaria.FormScreen as MonetariaFormScreen
 import com.example.donations.ui.donacionMonetaria.MetodoPagoTarjetaScreen
 import com.example.donations.ui.donacionMonetaria.MetodoPagoPaypalScreen
-import com.example.parks.ui.ParkDetailsN
 import com.example.profile.ui.datosCuenta.AccountDataScreen
 import com.example.profile.ui.datosPersonales.PersonalDataScreen
 import com.example.profile.ui.eliminarCuenta.DeleteAccountScreen
@@ -91,6 +90,7 @@ fun AppNavHost(navController: NavHostController, modifier: Modifier = Modifier) 
     LaunchedEffect(navController) {
         navController.addOnDestinationChangedListener { _, destination, _ ->
             val currentRoute = destination.route ?: return@addOnDestinationChangedListener
+            println("NAVIGATION - Navegando a: $currentRoute")
             // Update the authentication listener state based on the current route
             isAuthListenerActive = currentRoute !in listOf("signUp", "signUpSuccess")
 

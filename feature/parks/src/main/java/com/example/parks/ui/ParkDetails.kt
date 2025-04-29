@@ -114,7 +114,7 @@ fun ParkDetailsContent(park: ParkDataA, navController: NavController) {
                         modifier = Modifier
                             .clickable {
                                 // Lógica para manejar el clic en el ícono de retroceso
-                                navController.navigate("Parques")
+                                navController.navigateUp() // Mejor usar navigateUp para mantener consistencia
                             }
                     )
 
