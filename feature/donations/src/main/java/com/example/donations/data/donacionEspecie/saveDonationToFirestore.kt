@@ -45,7 +45,7 @@ fun saveDonationToFirestore(
         "imagenes" to imageUrls,
         "fecha_estimada_donacion" to estimatedDonationDate,
         "registro_usuario" to auth.currentUser?.uid, // ID del usuario que realiza la donación
-        "registro_estado" to "pendiente", // Estado inicial de la donación
+        "registro_estado" to "Pendiente", // Estado inicial de la donación
         "created_at" to Timestamp(createdAt), // Timestamp ajustado a Hermosillo
         "url_comprobante" to urlComprobante // URL del comprobante de donación
     )
