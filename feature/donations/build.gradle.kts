@@ -97,6 +97,9 @@ dependencies {
     // Módulos locales
     implementation(project(":core:design"))
     implementation(project(":feature:parks"))
+
+    // Coil for image loading
+    implementation("io.coil-kt:coil-compose:2.6.0")
 }
 
 // Forzar versiones específicas de las dependencias

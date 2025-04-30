@@ -40,6 +40,7 @@ import com.example.donations.ui.donacionEspecie.FormScreen as EspecieFormScreen
 import com.example.donations.ui.donacionMonetaria.FormScreen as MonetariaFormScreen
 import com.example.donations.ui.donacionMonetaria.MetodoPagoTarjetaScreen
 import com.example.donations.ui.donacionMonetaria.MetodoPagoPaypalScreen
+import com.example.donations.ui.inicio.DetalleDonacion
 import com.example.profile.ui.datosCuenta.AccountDataScreen
 import com.example.profile.ui.datosPersonales.PersonalDataScreen
 import com.example.profile.ui.eliminarCuenta.DeleteAccountScreen
@@ -90,7 +91,6 @@ fun AppNavHost(navController: NavHostController, modifier: Modifier = Modifier) 
     LaunchedEffect(navController) {
         navController.addOnDestinationChangedListener { _, destination, _ ->
             val currentRoute = destination.route ?: return@addOnDestinationChangedListener
-            println("NAVIGATION - Navegando a: $currentRoute")
             // Update the authentication listener state based on the current route
             isAuthListenerActive = currentRoute !in listOf("signUp", "signUpSuccess")
 
@@ -343,9 +343,31 @@ fun AppNavHost(navController: NavHostController, modifier: Modifier = Modifier) 
         composable("metodoPagoTarjeta") { MetodoPagoTarjetaScreen(navController, donacionMonetariaViewModel) }
         composable("metodoPagoPaypal") { MetodoPagoPaypalScreen(navController, donacionMonetariaViewModel) }
 
+        composable(
+            route = "DetalleDonacion/{type}/{id}",
+            arguments = listOf(
+                navArgument("type") { type = NavType.StringType },
+                navArgument("id") { type = NavType.StringType }
+            )
+        ) { backStackEntry ->
+            val donationType = backStackEntry.arguments?.getString("type") ?: ""
+            val donationId = backStackEntry.arguments?.getString("id") ?: ""
+
+            DetalleDonacion(
+                navController = navController,
+                donationType = donationType,
+                donationId = donationId
+            )
+        }
+
         // ----------------------------------------------------------------
 
         // RUTAS DEL MÓDULO "HOME"
+        composable(NavigationItem.Home.route) { HomeScreen(navController) }
+        composable(NavigationItem.Parks.route) { ParksScreen(navController = navController) } // Pasar navController
+        composable(NavigationItem.Donations.route) { DonationsScreen(navController) } // Pasar navController
+        composable(NavigationItem.Notifications.route) { NotificationsScreen(navController) } // Pasar navController
+        composable(NavigationItem.Profile.route) { ProfileScreen(navController) } // Pasar navController
 
 
         // ----------------------------------------------------------------

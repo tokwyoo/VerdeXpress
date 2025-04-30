@@ -260,8 +260,7 @@ fun DonationsScreen(
                             DonationItem(
                                 donation = donation,
                                 onDetailsClick = {
-                                    // TODO: Agregar la navegación a la pantalla de detalles
-                                    //navController.navigate("donation_details/${donation.id}?type=${donation.type}")
+                                    navController.navigate("DetalleDonacion/${donation.type}/${donation.id}")
                                 }
                             )
                         }
