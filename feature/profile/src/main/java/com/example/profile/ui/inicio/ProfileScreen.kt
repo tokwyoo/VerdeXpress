@@ -156,7 +156,7 @@ fun ProfileScreen(navController: NavController) {
                                 .weight(1f)
                         ) {
                             Text(
-                                text = userData?.nombre ?: "Cargando...", // Muestra el nombre y mientras carga los datos "Cargando..."
+                                text = "${userData?.nombre ?: "Cargando..."} ${userData?.apellidos ?: ""}", // Muestra el nombre y mientras carga los datos "Cargando..."
                                 fontFamily = SFProDisplayBold,
                                 fontWeight = FontWeight.Bold
                             )

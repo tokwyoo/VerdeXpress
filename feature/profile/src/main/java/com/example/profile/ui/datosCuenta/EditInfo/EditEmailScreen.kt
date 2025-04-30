@@ -1,4 +1,4 @@
-package com.example.profile.ui.datosPersonales.EditInfo
+package com.example.profile.ui.datosCuenta.EditInfo
 
 import android.util.Log
 import androidx.compose.foundation.layout.Arrangement

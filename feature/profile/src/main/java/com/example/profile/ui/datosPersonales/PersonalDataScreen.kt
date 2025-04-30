@@ -14,7 +14,6 @@ import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ArrowBack
-import androidx.compose.material.icons.filled.Email
 import androidx.compose.material.icons.filled.Person
 import androidx.compose.material.icons.filled.Phone
 import androidx.compose.material3.Button
@@ -123,7 +122,7 @@ fun PersonalDataScreen(navController: NavController) {
                 PersonalInfoItem(
                     icon = Icons.Default.Person,
                     title = "Nombre y apellido",
-                    value = "${userData?.nombre ?: ""} ${userData?.apellidos ?: ""}", // Concatenamos nombre y apellido
+                    value = "${userData?.nombre ?: ""} ${userData?.apellidos ?: ""}",
                     onEdit = {
                         navController.navigate("editName")
                     }
@@ -140,16 +139,6 @@ fun PersonalDataScreen(navController: NavController) {
                     }
                 )
 
-                Spacer(modifier = Modifier.height(16.dp))
-
-                PersonalInfoItem(
-                    icon = Icons.Default.Email,
-                    title = "E-mail",
-                    value = currentUser?.email ?: "Cargando...", // Muestra el correo de Firebase Auth
-                    onEdit = {
-                        navController.navigate("editEmail")
-                    }
-                )
             }
         }
     }
