@@ -59,6 +59,7 @@ fun MainScreen() {
                 "datosCuenta" -> true
                 "eliminarCuenta" -> true
                 "parkDetails/{parkName}?latitud={latitud}&longitud={longitud}" -> true
+                "DetalleDonacion/{type}/{id}" -> true
                 else -> false
             }
         }
