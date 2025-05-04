@@ -11,6 +11,7 @@ import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxHeight
@@ -38,6 +39,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontFamily
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.zIndex
@@ -247,8 +249,8 @@ fun DonationFilterPanel(
                             modifier = Modifier.padding(bottom = 12.dp)
                         )
 
-                        Row(
-                            horizontalArrangement = Arrangement.spacedBy(8.dp),
+                        // Cambiamos de Row a Column para dar más espacio a cada botón
+                        Column(
                             modifier = Modifier.padding(bottom = 16.dp)
                         ) {
                             FilterButton(
@@ -257,7 +259,9 @@ fun DonationFilterPanel(
                                 onClick = { selectedTime = if (selectedTime == "Más recientes") "" else "Más recientes" },
                                 activeColor = verde,
                                 inactiveColor = gris,
-                                modifier = Modifier.weight(1f)
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .padding(bottom = 8.dp)
                             )
 
                             FilterButton(
@@ -266,7 +270,7 @@ fun DonationFilterPanel(
                                 onClick = { selectedTime = if (selectedTime == "Más antiguas") "" else "Más antiguas" },
                                 activeColor = verde,
                                 inactiveColor = gris,
-                                modifier = Modifier.weight(1f)
+                                modifier = Modifier.fillMaxWidth()
                             )
                         }
 
@@ -340,8 +344,9 @@ fun FilterButton(
     Button(
         onClick = onClick,
         modifier = modifier
-            .height(40.dp),
+            .height(42.dp), // Aumentamos ligeramente la altura
         shape = RoundedCornerShape(4.dp),
+        contentPadding = PaddingValues(horizontal = 8.dp, vertical = 4.dp), // Reducimos el padding horizontal
         colors = ButtonDefaults.buttonColors(
             containerColor = if (selected) activeColor else inactiveColor,
             contentColor = if (selected) Color.White else Color.Black
@@ -350,7 +355,10 @@ fun FilterButton(
         Text(
             text = text,
             fontFamily = FontFamily(androidx.compose.ui.text.font.Font(R.font.sf_pro_display_medium)),
-            fontSize = 14.sp
+            fontSize = 13.sp, // Reducimos ligeramente el tamaño de la fuente
+            maxLines = 2, // Permitimos hasta 2 líneas de texto
+            textAlign = TextAlign.Center, // Centramos el texto
+            lineHeight = 14.sp // Reducimos el espacio entre líneas
         )
     }
 }
