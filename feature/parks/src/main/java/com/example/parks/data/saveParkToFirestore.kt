@@ -40,6 +40,7 @@ fun saveParkToFirestore(
         "comentarios" to comments,
         "registro_usuario" to auth.currentUser?.uid,
         "registro_estado" to "pendiente",
+        "situacion_actual" to "Recibiendo donaciones",
         "created_at" to Timestamp(createdAt) // Timestamp ajustado a Hermosillo
     )
 
