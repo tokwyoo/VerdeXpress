@@ -87,7 +87,7 @@ fun AccountDataScreen(navController: NavController) {
 
             AccountInfoItem(
                 icon = Icons.Default.Email,
-                title = "Contraseña",
+                title = "E-mail",
                 value = currentUser?.email ?: "Cargando...",
                 onEdit = {
                     navController.navigate("editEmail")
