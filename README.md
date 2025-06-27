@@ -1,3 +1,6 @@
+**Nota:** Este proyecto fue desarrollado por el **Equipo 2 de Práctica de Desarrollo de Sistemas 3 (PDS3) 2025-1** en la **Universidad de Sonora**. Actualmente la app no está en funcionamiento porque el backend no está activo ni incluido en este repositorio. Si deseas acceso al backend o más información, puedes contactarme en **ebmv03@gmail.com**.
+
+---
 
 # 🌳 VerdeXpress
 
